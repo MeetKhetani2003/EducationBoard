@@ -1,0 +1,5 @@
+{
+  "/api/editorial/route": "app/api/editorial/route.js",
+  "/api/cms/route": "app/api/cms/route.js",
+  "/page": "app/page.js"
+}
