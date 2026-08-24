@@ -10,7 +10,7 @@ import {
   Languages, LayoutDashboard, LifeBuoy, LoaderCircle, LockKeyhole, LogIn, Mail,
   Map, MapPin, Menu, MessageSquare, MoreHorizontal, Newspaper,
   Pencil, Phone, Plus, Printer, QrCode, Search, Send, Settings, ShieldCheck,
-  SlidersHorizontal, Sparkles, Trash2, UploadCloud, User, UserCheck, Users, X,
+  SlidersHorizontal, Sparkles, Trash2, UploadCloud, User, UserCheck, UserPlus, Users, X, LogOut,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,11 +23,12 @@ type Page =
   | "services" | "gallery" | "contact" | "admin-dashboard" | "admin-results"
   | "admin-import" | "admin-students" | "admin-exams" | "admin-news"
   | "admin-notices" | "admin-downloads" | "admin-programmes" | "admin-gallery"
-  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result";
+  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result" | "system-result-view" | "student-login";
 
 type Navigate = (page: Page) => void;
 
 const images = {
+  logo: "/logo.png",
   hero: "https://images.pexels.com/photos/3231359/pexels-photo-3231359.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1800&q=88",
   about: "https://images.pexels.com/photos/16420473/pexels-photo-16420473.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1200&q=85",
   exams: "https://images.pexels.com/photos/6683675/pexels-photo-6683675.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1200&q=85",
@@ -89,10 +90,14 @@ const fadeUp = {
 
 function Logo({ inverse = false, compact = false }: { inverse?: boolean; compact?: boolean }) {
   return <div className="flex items-center gap-3">
-    <div className={`grid ${compact ? "h-10 w-10" : "h-12 w-12"} shrink-0 place-items-center rounded-full border-2 ${inverse ? "border-[#e8c476]/50 bg-[#e8c476]/10" : "border-[#8d1c2f] bg-[#fdf5f6]"}`} aria-hidden="true">
-      <svg viewBox="0 0 48 48" className={`h-7 w-7 ${inverse ? "text-[#e8c476]" : "text-[#8d1c2f]"}`} fill="none"><path d="M8 17.5 24 9l16 8.5L24 26 8 17.5Z" fill="currentColor" /><path d="M14 22v9c5.2 4.7 14.8 4.7 20 0v-9M39 19v11" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><circle cx="39" cy="33" r="2" fill={inverse ? "#fff" : "#fb791c"} /></svg>
+    <div className={`grid ${compact ? "h-12 w-12" : "h-14 w-14 md:h-16 md:w-16"} shrink-0 place-items-center rounded-full bg-white overflow-hidden p-0.5 shadow-sm`}>
+      <img src={images.logo} alt="Logo" className="w-full h-full object-contain" />
     </div>
-    <div className="min-w-0 leading-tight"><div className={`font-semibold tracking-wide ${compact ? "text-[16px]" : "text-[18px] md:text-[22px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"} drop-shadow-sm`}>थार विद्यालय एवं तकनीकी शिक्षा बोर्ड</div><div className={`mt-1 font-medium tracking-[0.05em] ${compact ? "text-[10px]" : "text-[12px] md:text-[14px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"}`}>THAR BOARD OF SCHOOL & TECHNICAL EDUCATION</div></div>
+    <div className="min-w-0 flex flex-col justify-center leading-[1.2] text-left">
+      <div className={`font-bold tracking-wide ${compact ? "text-[14px]" : "text-[16px] md:text-[18px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"} drop-shadow-sm`}>थार विद्यालय एवं तकनीकी शिक्षा बोर्ड</div>
+      <div className={`font-bold tracking-[0.02em] ${compact ? "text-[14px]" : "text-[16px] md:text-[18px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"}`}>THAR BOARD OF SCHOOL & TECHNICAL EDUCATION</div>
+      <div className={`mt-0.5 font-semibold tracking-[0.15em] uppercase ${compact ? "text-[8px]" : "text-[9px] md:text-[10px]"} ${inverse ? "text-[#e8c476]/80" : "text-[#440d16]/80"}`}>EXAMINATION & CERTIFICATION AUTHORITY</div>
+    </div>
   </div>;
 }
 
@@ -129,23 +134,23 @@ function PageHero({ title, text, label, image, navigate }: { title: string; text
 const navItems: { label: string; page: Page; children?: { label: string; page: Page }[] }[] = [
   { label: "Home", page: "home" }, { label: "About Us", page: "about", children: [{ label: "About the Board", page: "about" }, { label: "Recognition & Approvals", page: "recognition" }] },
   { label: "Recognition", page: "recognition" }, { label: "Programmes", page: "programmes" },
-  { label: "Examinations", page: "examinations", children: [{ label: "Examination Schedule", page: "examinations" }, { label: "Admit Card", page: "student-zone" }, { label: "Examination Centres", page: "examinations" }] },
+  { label: "Examinations", page: "examinations", children: [{ label: "Examination Schedule", page: "examinations" }, { label: "Admit Card", page: "student-login" }, { label: "Examination Centres", page: "examinations" }] },
   { label: "Results", page: "results", children: [{ label: "Check Result", page: "results" }, { label: "Result Archive", page: "result-archive" }, { label: "Result Verification", page: "verification" }] },
-  { label: "Student Zone", page: "student-zone" }, { label: "News & Notices", page: "news", children: [{ label: "News & Announcements", page: "news" }, { label: "Notices & Circulars", page: "notices" }] },
+  { label: "Student Zone", page: "student-login" }, { label: "News & Notices", page: "news", children: [{ label: "News & Announcements", page: "news" }, { label: "Notices & Circulars", page: "notices" }] },
   { label: "Downloads", page: "downloads" }, { label: "Contact", page: "contact" },
 ];
 
 function PublicHeader({ navigate, active }: { navigate: Navigate; active: Page }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return <><div className="bg-[#440d16] text-[11px] font-medium text-stone-100"><div className="mx-auto flex min-h-8 max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8"><div className="hidden items-center gap-2 sm:flex"><ShieldCheck className="h-3.5 w-3.5 text-[#ff9245]" /> Official Examination & Result Portal</div><div className="flex w-full items-center justify-end gap-4 sm:w-auto"><a href="tel:18001232026" className="hidden hover:text-white md:inline">Helpline: 1800-123-2026</a><button onClick={() => navigate("contact")} className="hover:text-white">Help</button><button className="inline-flex items-center gap-1 hover:text-white"><Accessibility className="h-3.5 w-3.5" /> Accessibility</button><button className="inline-flex items-center gap-1 hover:text-white"><Languages className="h-3.5 w-3.5" /> EN</button></div></div></div>
-    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href="mailto:help@tbste.edu" className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>help@tbste.edu</span></a><button onClick={() => navigate("student-zone")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Staff login</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
+    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href="mailto:help@tbste.edu" className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>help@tbste.edu</span></a><button onClick={() => navigate("student-login")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Staff login</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
     <nav className="sticky top-0 z-40 border-b border-stone-200 bg-white/96 shadow-[0_5px_18px_rgba(15,35,70,0.04)] backdrop-blur" aria-label="Main navigation"><div className="mx-auto hidden max-w-[1240px] items-center justify-between px-8 lg:flex"><div className="flex">{navItems.map((item) => <div className="group relative" key={item.label}><button onClick={() => navigate(item.page)} className={`flex h-12 items-center gap-1.5 border-b-2 px-3.5 text-[13px] font-semibold transition ${active === item.page ? "border-[#fb791c] text-[#8d1c2f]" : "border-transparent text-stone-700 hover:border-stone-200 hover:text-[#8d1c2f]"}`}>{item.label}{item.children && <ChevronDown className="h-3.5 w-3.5" />}</button>{item.children && <div className="invisible absolute left-0 top-[49px] z-50 w-60 transtone-y-2 border border-stone-200 bg-white p-2 opacity-0 shadow-xl shadow-stone-900/10 transition-all group-hover:visible group-hover:transtone-y-0 group-hover:opacity-100">{item.children.map((child) => <button key={child.label} onClick={() => navigate(child.page)} className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm text-stone-600 hover:bg-stone-50 hover:text-[#8d1c2f]">{child.label}<ChevronRight className="h-4 w-4" /></button>)}</div>}</div>)}</div><button onClick={() => navigate("results")} className="flex h-12 items-center gap-2 border-b-2 border-[#8d1c2f] px-4 text-[13px] font-bold text-[#8d1c2f]"><Search className="h-4 w-4" /> Check result</button></div>
       <AnimatePresence>{mobileOpen && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-stone-100 bg-white lg:hidden"><div className="max-h-[72vh] overflow-y-auto p-4">{navItems.map((item) => <button key={item.label} onClick={() => { navigate(item.page); setMobileOpen(false); }} className="flex w-full items-center justify-between border-b border-stone-100 px-2 py-3.5 text-left text-sm font-semibold text-stone-700">{item.label}<ChevronRight className="h-4 w-4" /></button>)}<Button onClick={() => { navigate("results"); setMobileOpen(false); }} className="mt-4 w-full">Check Your Result</Button></div></motion.div>}</AnimatePresence></nav></>;
 }
 
 function Footer({ navigate }: { navigate: Navigate }) {
   const link = (label: string, page: Page) => <button onClick={() => navigate(page)} className="block py-1.5 text-left text-sm text-stone-300 transition hover:transtone-x-0.5 hover:text-white">{label}</button>;
-  return <footer className="bg-[#3c0b13] text-white"><div className="mx-auto max-w-[1240px] px-5 py-14 md:px-8 md:py-16"><div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><Logo inverse /><p className="mt-5 max-w-sm text-sm leading-6 text-stone-300">A UI demonstration of a modern examination, certification and student-service portal. Institutional details and records shown are illustrative.</p><div className="mt-5 flex items-center gap-2 text-xs text-stone-200"><ShieldCheck className="h-4 w-4 text-[#ff9245]" /> Designed for secure, accessible public services</div></div><div><h3 className="mb-3 text-sm font-semibold">Quick Links</h3>{link("About the Board", "about")}{link("Examination Results", "results")}{link("Examinations", "examinations")}{link("Programmes", "programmes")}</div><div><h3 className="mb-3 text-sm font-semibold">Student Services</h3>{link("Downloads", "downloads")}{link("Admit Card", "student-zone")}{link("Result Verification", "verification")}{link("Student Zone", "student-zone")}</div><div><h3 className="mb-3 text-sm font-semibold">Support</h3>{link("Contact Us", "contact")}<a className="block py-1.5 text-sm text-stone-300" href="mailto:help@tbste.edu">help@tbste.edu</a><a className="block py-1.5 text-sm text-stone-300" href="tel:18001232026">1800-123-2026</a><span className="mt-3 block text-xs leading-5 text-stone-400">Mon-Fri, 9:30 AM-5:30 PM</span></div></div></div><div className="border-t border-white/10"><div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-5 py-5 text-xs text-stone-400 md:flex-row md:items-center md:justify-between md:px-8"><p>Copyright 2026 Thar Board of School and Technical Education. Demo concept only.</p><div className="flex gap-5"><button>Privacy Policy</button><button>Terms</button><button>Accessibility</button></div></div></div></footer>;
+  return <footer className="bg-[#3c0b13] text-white"><div className="mx-auto max-w-[1240px] px-5 py-14 md:px-8 md:py-16"><div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><Logo inverse /><p className="mt-5 max-w-sm text-sm leading-6 text-stone-300">A UI demonstration of a modern examination, certification and student-service portal. Institutional details and records shown are illustrative.</p><div className="mt-5 flex items-center gap-2 text-xs text-stone-200"><ShieldCheck className="h-4 w-4 text-[#ff9245]" /> Designed for secure, accessible public services</div></div><div><h3 className="mb-3 text-sm font-semibold">Quick Links</h3>{link("About the Board", "about")}{link("Examination Results", "results")}{link("Examinations", "examinations")}{link("Programmes", "programmes")}</div><div><h3 className="mb-3 text-sm font-semibold">Student Services</h3>{link("Downloads", "downloads")}{link("Admit Card", "student-login")}{link("Result Verification", "verification")}{link("Student Zone", "student-login")}</div><div><h3 className="mb-3 text-sm font-semibold">Support</h3>{link("Contact Us", "contact")}<a className="block py-1.5 text-sm text-stone-300" href="mailto:help@tbste.edu">help@tbste.edu</a><a className="block py-1.5 text-sm text-stone-300" href="tel:18001232026">1800-123-2026</a><span className="mt-3 block text-xs leading-5 text-stone-400">Mon-Fri, 9:30 AM-5:30 PM</span></div></div></div><div className="border-t border-white/10"><div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-5 py-5 text-xs text-stone-400 md:flex-row md:items-center md:justify-between md:px-8"><p>Copyright 2026 Thar Board of School and Technical Education. Demo concept only.</p><div className="flex gap-5"><button>Privacy Policy</button><button>Terms</button><button>Accessibility</button></div></div></div></footer>;
 }
 
 function ResultSearch({ navigate, compact = false }: { navigate: Navigate; compact?: boolean }) {
@@ -160,7 +165,7 @@ function RecognitionSection({ navigate }: { navigate: Navigate }) {
 }
 
 function StudentServices({ navigate }: { navigate: Navigate }) {
-  const services: { label: string; icon: LucideIcon; page: Page }[] = [{ label: "Student Login", icon: LogIn, page: "student-zone" }, { label: "Admit Card", icon: FileCheck2, page: "student-zone" }, { label: "Study Material", icon: BookOpen, page: "downloads" }, { label: "Application Status", icon: ClipboardCheck, page: "services" }, { label: "Important Forms", icon: FileText, page: "downloads" }, { label: "Help & Support", icon: LifeBuoy, page: "contact" }];
+  const services: { label: string; icon: LucideIcon; page: Page }[] = [{ label: "Student Login", icon: LogIn, page: "student-login" }, { label: "Admit Card", icon: FileCheck2, page: "student-login" }, { label: "Study Material", icon: BookOpen, page: "downloads" }, { label: "Application Status", icon: ClipboardCheck, page: "services" }, { label: "Important Forms", icon: FileText, page: "downloads" }, { label: "Help & Support", icon: LifeBuoy, page: "contact" }];
   return <section className="bg-white py-10 md:py-16"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><SectionHeading eyebrow="Student Zone" title="Services designed around your academic journey" text="Find the right service quickly, from enrolment through certification." /><div className="grid gap-px overflow-hidden border border-stone-200 bg-stone-200 sm:grid-cols-2 lg:grid-cols-3">{services.map((item) => <button key={item.label} onClick={() => navigate(item.page)} className="group flex items-center justify-between bg-white p-5 text-left transition hover:bg-stone-50"><span className="flex items-center gap-4"><span className="grid h-11 w-11 place-items-center rounded-lg bg-[#fceff1] text-[#8d1c2f]"><item.icon className="h-5 w-5" /></span><span className="font-semibold text-[#4a131c]">{item.label}</span></span><ChevronRight className="h-4 w-4 text-stone-400 transition group-hover:transtone-x-1 group-hover:text-[#8d1c2f]" /></button>)}</div></div></section>;
 }
 
@@ -212,7 +217,7 @@ function HomePage({ navigate }: { navigate: Navigate }) {
   const newsTitle = safeCms['home.news.title'] || "Official Updates";
   const newsText = safeCms['home.news.text'] || "Latest news.";
   const quickServices: { title: string; text: string; icon: LucideIcon; image: string; page: Page }[] = [
-    { title: "Admit Card", text: "Download your card.", icon: FileCheck2, page: "student-zone", image: images.students },
+    { title: "Admit Card", text: "Download your card.", icon: FileCheck2, page: "student-login", image: images.students },
     { title: "Exam Schedule", text: "Dates and times.", icon: Clock3, page: "examinations", image: images.exams },
     { title: "Result Portal", text: "View official results.", icon: BookOpen, page: "results", image: images.diploma },
     { title: "Contact Us", text: "Help and support.", icon: Headphones, page: "contact", image: images.conversation }
@@ -222,7 +227,7 @@ function HomePage({ navigate }: { navigate: Navigate }) {
     <section className="relative min-h-[400px] overflow-hidden bg-[#4a0e18] text-white md:min-h-[450px]">
       <motion.img initial={{ scale: 1.05 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: "easeOut" }} src={heroBg} alt="Students engaged in an academic classroom" className="absolute inset-0 h-full w-full object-cover object-center md:object-[65%_45%]" />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,25,57,.98)_0%,rgba(7,33,73,.9)_39%,rgba(8,35,76,.38)_72%,rgba(8,28,61,.12)_100%)]" />
-      <div className="relative mx-auto flex min-h-[400px] max-w-[1240px] items-center px-5 py-16 md:min-h-[450px] md:px-8"><motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-[670px]"><div className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#ff9e58]"><span className="h-px w-8 bg-[#ff9e58]" /> Official Examination Portal</div><div className="mb-5 text-2xl font-semibold tracking-[-0.02em] text-white md:text-3xl">Thar Board of School and Technical Education</div><h1 className="max-w-2xl text-[clamp(2.8rem,6.5vw,5.4rem)] font-semibold leading-[0.98] tracking-[-0.055em]">{heroTitle.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}</h1><p className="mt-6 max-w-xl text-[16px] leading-7 text-stone-50/85 md:text-lg">{heroText}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button variant="light" onClick={() => navigate("results")} className="px-6">Check Your Result <ArrowRight className="h-4 w-4" /></Button><Button onClick={() => navigate("student-zone")} className="border border-white/35 bg-white/5 px-6 hover:bg-white/10">Explore Student Services</Button></div></motion.div></div>
+      <div className="relative mx-auto flex min-h-[400px] max-w-[1240px] items-center px-5 py-16 md:min-h-[450px] md:px-8"><motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-[670px]"><div className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#ff9e58]"><span className="h-px w-8 bg-[#ff9e58]" /> Official Examination Portal</div><div className="mb-5 text-2xl font-semibold tracking-[-0.02em] text-white md:text-3xl">Thar Board of School and Technical Education</div><h1 className="max-w-2xl text-[clamp(2.8rem,6.5vw,5.4rem)] font-semibold leading-[0.98] tracking-[-0.055em]">{heroTitle.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}</h1><p className="mt-6 max-w-xl text-[16px] leading-7 text-stone-50/85 md:text-lg">{heroText}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button variant="light" onClick={() => navigate("results")} className="px-6">Check Your Result <ArrowRight className="h-4 w-4" /></Button><Button onClick={() => navigate("student-login")} className="border border-white/35 bg-white/5 px-6 hover:bg-white/10">Explore Student Services</Button></div></motion.div></div>
       <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-[#fb791c] via-[#ffa869] to-transparent" />
     </section>
 
@@ -1862,6 +1867,89 @@ function renderAdminPage(page: Page, navigate: Navigate, notify: (message: strin
   }
 }
 
+
+function StudentLoginPage({ navigate }: { navigate: Navigate }) {
+  const [enrollment, setEnrollment] = useState("");
+  const [dob, setDob] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enrollment.trim().length < 4) {
+      setError("Please enter a valid Enrollment Number.");
+      return;
+    }
+    if (!dob) {
+      setError("Please select your Date of Birth.");
+      return;
+    }
+    
+    setError("");
+    setLoading(true);
+    
+    // Simulate API call for login
+    setTimeout(() => {
+      setLoading(false);
+      navigate("student-zone");
+    }, 800);
+  };
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center bg-[#fcf7f8] py-12 px-5">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-stone-200 overflow-hidden">
+        <div className="bg-[#4a131c] px-6 py-8 text-center text-white">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-white mx-auto mb-4">
+            <GraduationCap className="h-8 w-8 text-[#4a131c]" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight">Student Portal</h2>
+          <p className="text-stone-300 mt-2 text-sm">Secure sign in to your learner account</p>
+        </div>
+        
+        <form onSubmit={handleLogin} className="p-6 md:p-8 space-y-5">
+          {error && (
+            <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          
+          <Field 
+            label="Enrollment Number" 
+            placeholder="e.g. 2601842" 
+            value={enrollment}
+            onChange={setEnrollment}
+            required
+          />
+          
+          <Field 
+            label="Date of Birth" 
+            type="date"
+            value={dob}
+            onChange={setDob}
+            required
+          />
+          
+          <div className="pt-2">
+            <Button type="submit" className="w-full text-base py-3 h-auto" disabled={loading}>
+              {loading ? (
+                <><LoaderCircle className="h-5 w-5 animate-spin" /> Authenticating...</>
+              ) : (
+                <><LogIn className="h-5 w-5" /> Sign In</>
+              )}
+            </Button>
+          </div>
+          
+          <p className="text-center text-xs text-stone-500 mt-4 flex items-center justify-center gap-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-lime-600" />
+            256-bit secure connection
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function renderPublicPage(page: Page, navigate: Navigate, notify: (message: string) => void) {
   switch (page) {
     case "about": return <AboutPage navigate={navigate} />;
@@ -1880,18 +1968,664 @@ function renderPublicPage(page: Page, navigate: Navigate, notify: (message: stri
     case "services": return <ServicesPage navigate={navigate} notify={notify} />;
     case "gallery": return <GalleryPage navigate={navigate} />;
     case "contact": return <ContactPage navigate={navigate} />;
+    case "student-login": return <StudentLoginPage navigate={navigate} />;
     default: return <HomePage navigate={navigate} />;
   }
 }
 
 const validPages: Page[] = [
-  "home", "about", "recognition", "programmes", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result",
+  "home", "about", "recognition", "programmes", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result", "system-result-view", "student-login",
 ];
 
 function pageFromHash(): Page {
   if (typeof window === "undefined") return "home";
   const value = window.location.hash.replace("#", "") as Page;
   return validPages.includes(value) ? value : "home";
+}
+
+
+
+
+function SystemRegistration({ notify }: { notify: (msg: string) => void }) {
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({ enrollmentNumber: '', name: '', fatherName: '', dob: '', course: '', email: '', phone: '', address: '', passwordHash: 'defaultpass' });
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch('/api/students', { method: 'POST', body: JSON.stringify(formData) });
+      if (res.ok) { notify('Student registered successfully!'); setFormData({ enrollmentNumber: '', name: '', fatherName: '', dob: '', course: '', email: '', phone: '', address: '', passwordHash: 'defaultpass' }); }
+      else alert('Failed to register');
+    } catch (err) { alert('Error registering'); } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Student Registration</h2>
+      <form onSubmit={submit} className="bg-white p-6 rounded-lg border border-stone-200 shadow-sm max-w-3xl space-y-5">
+        <div className="grid grid-cols-2 gap-5">
+          <Field label="Enrollment Number" required value={formData.enrollmentNumber} onChange={(v) => setFormData({...formData, enrollmentNumber: v})} />
+          <Field label="Course" required value={formData.course} onChange={(v) => setFormData({...formData, course: v})} />
+          <Field label="Full Name" required value={formData.name} onChange={(v) => setFormData({...formData, name: v})} />
+          <Field label="Father's Name" required value={formData.fatherName} onChange={(v) => setFormData({...formData, fatherName: v})} />
+          <Field label="Date of Birth" type="date" required value={formData.dob} onChange={(v) => setFormData({...formData, dob: v})} />
+          <Field label="Email" type="email" value={formData.email} onChange={(v) => setFormData({...formData, email: v})} />
+          <Field label="Phone" value={formData.phone} onChange={(v) => setFormData({...formData, phone: v})} />
+        </div>
+        <div className="pt-4 border-t border-stone-100 flex justify-end">
+          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Register Student"}</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function SystemSemesters({ notify }: { notify: (msg: string) => void }) {
+  const [semesters, setSemesters] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({ name: '', course: '', academicYear: '', isActive: true });
+
+  const fetchSemesters = async () => {
+    setLoading(true);
+    try { const res = await fetch('/api/semesters'); if (res.ok) setSemesters(await res.json()); } catch(e){} finally { setLoading(false); }
+  };
+  useEffect(() => { fetchSemesters(); }, []);
+
+  const add = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/semesters', { method: 'POST', body: JSON.stringify(formData) });
+      if (res.ok) { notify('Semester added!'); fetchSemesters(); setFormData({ name: '', course: '', academicYear: '', isActive: true }); }
+    } catch(e){}
+  };
+  const del = async (id: string) => {
+    if (!confirm('Are you sure?')) return;
+    await fetch('/api/semesters?id=' + id, { method: 'DELETE' }); notify('Semester deleted'); fetchSemesters();
+  }
+
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Manage Semesters</h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        <form onSubmit={add} className="bg-white p-5 rounded-lg border border-stone-200 shadow-sm space-y-4 col-span-1 h-fit">
+          <h3 className="font-semibold text-stone-800">Add New Semester</h3>
+          <Field label="Semester Name" placeholder="e.g. SEMESTER - I" required value={formData.name} onChange={(v) => setFormData({...formData, name: v})} />
+          <Field label="Course" placeholder="e.g. BBA" required value={formData.course} onChange={(v) => setFormData({...formData, course: v})} />
+          <Field label="Academic Year" placeholder="e.g. 2026-2027" required value={formData.academicYear} onChange={(v) => setFormData({...formData, academicYear: v})} />
+          <Button type="submit" className="w-full mt-2">Add Semester</Button>
+        </form>
+        <div className="col-span-2">
+          {loading ? <div>Loading...</div> : semesters.map(s => (
+            <div key={s._id} className="bg-white p-4 border border-stone-200 rounded mb-3 flex justify-between items-center">
+              <div><strong className="text-stone-800">{s.name}</strong> <span className="text-xs text-stone-500 ml-2">{s.course} • {s.academicYear}</span></div>
+              <button onClick={() => del(s._id)} className="text-red-500 text-xs font-semibold hover:underline">Delete</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function SystemVerification({ notify }: { notify: (msg: string) => void }) {
+  const [students, setStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try { const res = await fetch('/api/students'); if (res.ok) setStudents(await res.json()); } catch(e){} finally { setLoading(false); }
+  };
+  useEffect(() => { fetchStudents(); }, []);
+
+  const verifyStudent = async (id: string) => {
+    try {
+      // Dummy endpoint interaction
+      notify('Student verified successfully!');
+    } catch(e){}
+  };
+
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Student Verification</h2>
+      <div className="bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-semibold uppercase tracking-wider text-[11px]">
+            <tr><th className="px-5 py-3">Enrollment</th><th className="px-5 py-3">Name</th><th className="px-5 py-3">Course</th><th className="px-5 py-3 text-right">Action</th></tr>
+          </thead>
+          <tbody className="divide-y divide-stone-100">
+            {loading ? <tr><td colSpan={4} className="p-5 text-center text-stone-400">Loading...</td></tr> : students.length === 0 ? <tr><td colSpan={4} className="p-5 text-center text-stone-400">No students found.</td></tr> : students.map(s => (
+              <tr key={s._id}>
+                <td className="px-5 py-3 font-semibold text-stone-800">{s.enrollmentNumber}</td>
+                <td className="px-5 py-3">{s.name}</td>
+                <td className="px-5 py-3 text-stone-500">{s.course || 'N/A'}</td>
+                <td className="px-5 py-3 text-right"><Button variant="secondary" className="min-h-8 py-0 text-xs px-3" onClick={() => verifyStudent(s._id)}>Verify</Button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SystemSubjects({ notify }: { notify: (msg: string) => void }) {
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [semesters, setSemesters] = useState<any[]>([]);
+  const [formData, setFormData] = useState({ name: '', code: '', semesterId: '', fullMarks: '100', passMarks: '40' });
+
+  const fetchData = async () => {
+    try { 
+      const resSub = await fetch('/api/subjects'); if (resSub.ok) setSubjects(await resSub.json()); 
+      const resSem = await fetch('/api/semesters'); if (resSem.ok) setSemesters(await resSem.json()); 
+    } catch(e){}
+  };
+  useEffect(() => { fetchData(); }, []);
+
+  const add = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = { ...formData, fullMarks: Number(formData.fullMarks), passMarks: Number(formData.passMarks) };
+      const res = await fetch('/api/subjects', { method: 'POST', body: JSON.stringify(payload) });
+      if (res.ok) { notify('Subject added!'); fetchData(); setFormData({...formData, name: '', code: ''}); }
+    } catch(e){}
+  };
+  const del = async (id: string) => {
+    if (!confirm('Are you sure?')) return;
+    await fetch('/api/subjects?id=' + id, { method: 'DELETE' }); notify('Subject deleted'); fetchData();
+  }
+
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Manage Subjects</h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        <form onSubmit={add} className="bg-white p-5 rounded-lg border border-stone-200 shadow-sm space-y-4 col-span-1 h-fit">
+          <h3 className="font-semibold text-stone-800">Add New Subject</h3>
+          <SelectField label="Semester" required options={semesters.map(s => s._id)} />
+          <div className="text-xs text-stone-400 -mt-3 mb-2 break-all">{formData.semesterId || "Select ID from dropdown"}</div>
+          <select required className="w-full h-10 border rounded px-3 text-sm" value={formData.semesterId} onChange={e => setFormData({...formData, semesterId: e.target.value})}><option value="">Select Semester...</option>{semesters.map(s => <option key={s._id} value={s._id}>{s.name} ({s.course})</option>)}</select>
+          <Field label="Subject Name" required value={formData.name} onChange={(v) => setFormData({...formData, name: v})} />
+          <Field label="Subject Code" required value={formData.code} onChange={(v) => setFormData({...formData, code: v})} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Full Marks" type="number" required value={formData.fullMarks} onChange={(v) => setFormData({...formData, fullMarks: v})} />
+            <Field label="Pass Marks" type="number" required value={formData.passMarks} onChange={(v) => setFormData({...formData, passMarks: v})} />
+          </div>
+          <Button type="submit" className="w-full mt-2">Add Subject</Button>
+        </form>
+        <div className="col-span-2">
+          {subjects.map(s => (
+            <div key={s._id} className="bg-white p-4 border border-stone-200 rounded mb-3 flex justify-between items-center">
+              <div>
+                <strong className="text-stone-800">{s.name}</strong> <span className="text-xs text-stone-500 ml-2">Code: {s.code}</span>
+                <div className="text-xs text-stone-400 mt-1">Marks: {s.passMarks} / {s.fullMarks}</div>
+              </div>
+              <button onClick={() => del(s._id)} className="text-red-500 text-xs font-semibold hover:underline">Delete</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SystemResultEntry({ notify }: { notify: (msg: string) => void }) {
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Result Entry</h2>
+      <div className="bg-white p-6 rounded-lg border border-stone-200 shadow-sm max-w-xl text-center py-12">
+        <FileCheck2 className="h-12 w-12 text-stone-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-stone-800">Result Entry Module</h3>
+        <p className="text-sm text-stone-500 mt-2">To enter results, select a student and semester, then input the marks for each subject. Result processing logic is currently mocked.</p>
+        <Button onClick={() => notify('Marks saved successfully (Mock)')} className="mt-6">Save Mock Marks</Button>
+      </div>
+    </div>
+  );
+}
+
+function SystemExportStudents({ notify }: { notify: (msg: string) => void }) {
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Export Students</h2>
+      <div className="bg-white p-6 rounded-lg border border-stone-200 shadow-sm max-w-xl">
+        <p className="text-sm text-stone-600 mb-6">Download a full CSV export of all registered students, including their enrollment numbers, courses, and basic details.</p>
+        <Button onClick={() => { notify('Generating CSV...'); setTimeout(() => notify('CSV Download started!'), 1000); }}><Download className="h-4 w-4 mr-2" /> Download Students (CSV)</Button>
+      </div>
+    </div>
+  );
+}
+
+function SystemDashboardTab() {
+  return (
+    <div className="p-6 md:p-8">
+      <h2 className="text-xl font-bold text-stone-900 mb-6">Dashboard Overview</h2>
+      <div className="grid grid-cols-3 gap-6">
+        {[['Total Students', '1,420', Users], ['Active Semesters', '8', CalendarDays], ['Results Declared', '12,050', FileCheck2]].map(([title, val, Icon]: any) => (
+          <div key={title} className="bg-white border border-stone-200 p-5 rounded-lg flex justify-between items-center shadow-sm">
+            <div><div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">{title}</div><div className="text-2xl font-bold text-stone-900 mt-2">{val}</div></div>
+            <Icon className="h-8 w-8 text-[#006B4C]" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Ensure StudentSystemShell handles tabs
+
+
+function SystemResultView() {
+  return (
+    <div className="p-6 md:p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[#006B4C] text-lg font-bold flex items-center gap-2">
+          <GraduationCap className="h-5 w-5" /> Result View & Print
+        </h2>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold rounded shadow-sm text-stone-700 hover:bg-stone-50 transition">
+            <ArrowLeft className="h-3.5 w-3.5" /> Main Dashboard
+          </button>
+          <div className="flex items-center gap-2 ml-4">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#006B4C] text-xs font-bold text-white">S</span>
+            <div className="leading-tight">
+              <div className="text-[11px] font-bold text-stone-800">superadmin</div>
+              <div className="text-[10px] text-stone-500">Superadmin</div>
+            </div>
+          </div>
+          <button className="flex items-center gap-1 text-red-600 text-xs font-semibold ml-4 hover:text-red-700 transition">
+            <LogOut className="h-3.5 w-3.5" /> Logout
+          </button>
+        </div>
+      </div>
+      <div className="bg-white border border-stone-200 rounded-lg shadow-sm">
+        <div className="p-6">Mock Result View</div>
+      </div>
+    </div>
+  );
+}
+
+function StudentSystemShell({ page, navigate, notify }: { page: Page; navigate: Navigate; notify: (message: string) => void }) {
+  const [activeTab, setActiveTab] = useState("Result View");
+  
+  // Registration Form State
+  const [enrollmentNumber, setEnrollmentNumber] = useState("");
+  const [name, setName] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [dob, setDob] = useState("");
+  const [registering, setRegistering] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegistering(true);
+    try {
+      const res = await fetch('/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentNumber, name, fatherName, dob })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to register student');
+      
+      notify("Student registered successfully!");
+      setEnrollmentNumber("");
+      setName("");
+      setFatherName("");
+      setDob("");
+    } catch (err: any) {
+      notify("Error: " + err.message);
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f3f4f6] font-sans flex">
+      <aside className="w-64 bg-[#0d1f2d] text-stone-300 flex flex-col shrink-0">
+        <div className="h-16 flex items-center gap-2 px-5 bg-[#006B4C] text-white">
+          <GraduationCap className="h-6 w-6" />
+          <span className="font-bold text-lg tracking-wide">Student System</span>
+        </div>
+        
+        <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="mb-6 space-y-1">
+            <button onClick={() => setActiveTab("Dashboard")} className={`w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium transition ${activeTab === "Dashboard" ? "bg-[#006B4C]/20 text-[#006B4C] border-l-4 border-[#006B4C]" : "text-stone-300 hover:text-white hover:bg-white/5"}`}>
+              <LayoutDashboard className="h-4 w-4" /> Dashboard
+            </button>
+            <button onClick={() => navigate("home")} className="w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium text-stone-300 hover:text-white hover:bg-white/5 transition">
+              <ArrowLeft className="h-4 w-4" /> Main Dashboard
+            </button>
+          </div>
+          
+          <div className="mb-6">
+            <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-stone-500">STUDENTS</div>
+            <div className="space-y-1">
+              <button onClick={() => setActiveTab("Registration")} className={`w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium transition ${activeTab === "Registration" ? "bg-[#006B4C]/20 text-[#006B4C] border-l-4 border-[#006B4C]" : "text-stone-300 hover:text-white hover:bg-white/5"}`}>
+                <UserPlus className="h-4 w-4" /> Registration
+              </button>
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium text-stone-300 hover:text-white hover:bg-white/5 transition">
+                <UserCheck className="h-4 w-4" /> Verification
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-stone-500">RESULTS</div>
+            <div className="space-y-1">
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium text-stone-300 hover:text-white hover:bg-white/5 transition">
+                <FileCheck2 className="h-4 w-4" /> Result Entry
+              </button>
+              <button onClick={() => setActiveTab("Result View")} className={`w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-medium transition ${activeTab === "Result View" ? "bg-[#006B4C]/20 text-[#006B4C] border-l-4 border-[#006B4C]" : "text-stone-300 hover:text-white hover:bg-white/5"}`}>
+                <FileText className="h-4 w-4" /> View / Print Result
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      
+      <main className="flex-1 overflow-y-auto">
+        {activeTab === "Result View" && <SystemResultView />}
+        
+        {activeTab === "Registration" && (
+          <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[#006B4C] text-lg font-bold flex items-center gap-2">
+                <UserPlus className="h-5 w-5" /> Student Registration
+              </h2>
+            </div>
+            
+            <form onSubmit={handleRegister} className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <Field label="Enrollment Number" required placeholder="Unique ID" value={enrollmentNumber} onChange={setEnrollmentNumber} />
+                <Field label="Full Name" required placeholder="Student's Name" value={name} onChange={setName} />
+                <Field label="Father's Name" required placeholder="Father's Name" value={fatherName} onChange={setFatherName} />
+                <Field label="Date of Birth" type="date" required value={dob} onChange={setDob} />
+              </div>
+              <div className="pt-4 border-t border-stone-100 flex justify-end">
+                <Button type="submit" disabled={registering} className="w-full bg-[#006B4C] hover:bg-[#00543c]">
+                  {registering ? "Saving..." : "Register Student"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeTab === "Dashboard" && (
+          <div className="p-6 md:p-8 space-y-6">
+            <h2 className="text-[#006B4C] text-lg font-bold">System Dashboard</h2>
+            <p className="text-stone-500">Welcome to the student management system.</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: Navigate; notify: (message: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("My Dashboard");
+  const [student, setStudent] = useState<any>(null);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const sessionStr = localStorage.getItem('studentSession');
+    if (!sessionStr) {
+      navigate("student-login");
+      return;
+    }
+    try {
+      const session = JSON.parse(sessionStr);
+      setStudent(session);
+      
+      fetch('/api/results?search=' + encodeURIComponent(session.enrollmentNumber))
+        .then(res => res.json())
+        .then(data => {
+          if (data.results) {
+            setResults(data.results.filter((r: any) => r.enrollmentNumber === session.enrollmentNumber));
+          } else if (data.enrollmentNumber) {
+            setResults([data]);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } catch (e) {
+      navigate("student-login");
+    }
+  }, []);
+
+  const portalNav = [
+    { label: "My Dashboard", icon: LayoutDashboard },
+    { label: "Academic Profile", icon: User },
+    { label: "Examination Schedule", icon: CalendarDays },
+    { label: "My Results", icon: FileCheck2 },
+    { label: "Study Material", icon: BookOpen },
+    { label: "Downloads & Forms", icon: Download },
+    { label: "Help & Support", icon: LifeBuoy },
+  ];
+
+  if (loading || !student) {
+    return <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6]"><LoaderCircle className="h-8 w-8 animate-spin text-[#8d1c2f]" /></div>;
+  }
+
+  const handleSignOut = () => {
+    localStorage.removeItem('studentSession');
+    navigate("home");
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f3f4f6] text-stone-800 font-sans flex flex-col md:flex-row">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#4a131c] text-white flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex h-[72px] items-center gap-3 border-b border-white/10 px-5 bg-[#3c0f16]">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[#4a131c]">
+            <GraduationCap className="h-6 w-6" />
+          </div>
+          <div className="font-semibold tracking-wide">Student Portal</div>
+          <button onClick={() => setOpen(false)} className="ml-auto md:hidden text-white/70 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-5 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-[#8d1c2f] flex items-center justify-center border-2 border-[#e8c476]">
+              <span className="font-bold text-lg text-[#e8c476]">{student.studentName.substring(0, 2).toUpperCase()}</span>
+            </div>
+            <div>
+              <div className="font-semibold text-sm line-clamp-1" title={student.studentName}>{student.studentName}</div>
+              <div className="text-xs text-[#e8c476]">Enrollment: {student.enrollmentNumber}</div>
+            </div>
+          </div>
+        </div>
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          {portalNav.map((item, idx) => (
+            <button key={item.label} onClick={() => { setActiveTab(item.label); setOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === item.label ? "bg-[#8d1c2f] text-white shadow-sm" : "text-white/70 hover:bg-white/5 hover:text-white"}`}>
+              <item.icon className="h-[18px] w-[18px]" /> {item.label}
+            </button>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-white/10">
+          <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition">
+            <LogOut className="h-4 w-4" /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col overflow-hidden h-screen">
+        <header className="h-[72px] flex items-center justify-between bg-white px-5 md:px-8 border-b border-stone-200 shrink-0">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setOpen(true)} className="md:hidden text-stone-500 hover:text-stone-700">
+              <Menu className="h-6 w-6" />
+            </button>
+            <h1 className="text-lg font-bold text-stone-800">Welcome back, {student.studentName.split(' ')[0]}</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="relative text-stone-500 hover:text-[#4a131c] transition">
+              <Bell className="h-5 w-5" />
+            </button>
+            <button onClick={() => navigate("home")} className="flex items-center gap-2 text-sm font-semibold text-[#8d1c2f] border border-[#8d1c2f] rounded-lg px-3 py-1.5 hover:bg-[#8d1c2f] hover:text-white transition hidden sm:flex">
+              <ExternalLink className="h-4 w-4" /> Main Website
+            </button>
+          </div>
+        </header>
+        
+        <main className="flex-1 overflow-y-auto p-5 md:p-8 custom-scrollbar">
+          {activeTab === "My Dashboard" && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                {[
+                  { label: "Active Programme", value: results.length ? results[0].programme : "N/A", icon: BookOpen, color: "bg-blue-50 text-blue-700" },
+                  { label: "Published Results", value: results.length.toString(), icon: FileCheck2, color: "bg-green-50 text-green-700" },
+                  { label: "Upcoming Exams", value: "0", icon: CalendarDays, color: "bg-orange-50 text-orange-700" },
+                  { label: "Unread Notices", value: "0", icon: Bell, color: "bg-red-50 text-red-700" },
+                ].map((metric, i) => (
+                  <div key={i} className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">{metric.label}</div>
+                      <div className="text-xl font-bold text-stone-800 mt-1 line-clamp-1" title={metric.value}>{metric.value}</div>
+                    </div>
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${metric.color}`}>
+                      <metric.icon className="h-6 w-6" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-stone-200 flex justify-between items-center bg-stone-50/50">
+                      <h2 className="font-bold text-stone-800">Recent Results</h2>
+                      <button onClick={() => setActiveTab('My Results')} className="text-xs font-semibold text-[#8d1c2f] hover:underline">View All</button>
+                    </div>
+                    <div className="divide-y divide-stone-100">
+                      {results.length === 0 ? (
+                        <div className="p-6 text-center text-stone-500 text-sm">No results published yet.</div>
+                      ) : results.slice(0, 3).map((res: any, i: number) => (
+                        <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-stone-50 transition">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-lg bg-[#faebee] text-[#8d1c2f] flex items-center justify-center">
+                              <Award className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-stone-800">{res.examination}</div>
+                              <div className="text-xs text-stone-500 mt-0.5">{res.examYear} - {res.programme}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider mb-1 ${res.resultStatus === 'PASS' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                              {res.resultStatus}
+                            </span>
+                            <div className="text-sm font-bold text-[#8d1c2f]">Total: {res.grandTotal}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-stone-200 flex justify-between items-center bg-stone-50/50">
+                      <h2 className="font-bold text-stone-800">Examination Schedule</h2>
+                    </div>
+                    <div className="p-6 text-center text-stone-500 text-sm">
+                      No upcoming examinations scheduled.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="bg-gradient-to-b from-[#4a131c] to-[#631824] rounded-xl shadow-sm text-white overflow-hidden">
+                    <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                      <h2 className="font-bold flex items-center gap-2"><Bell className="h-4 w-4 text-[#e8c476]" /> Notice Board</h2>
+                    </div>
+                    <div className="p-5 text-center text-sm text-white/70">
+                      No new notices.
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6">
+                    <h2 className="font-bold text-stone-800 mb-4">Quick Links</h2>
+                    <div className="space-y-3">
+                      <button onClick={() => notify("Admit Card not available.")} className="w-full flex items-center justify-between p-3 rounded-lg border border-stone-200 hover:border-[#8d1c2f] hover:bg-[#faebee] hover:text-[#8d1c2f] transition text-sm font-semibold text-stone-700">
+                        <span className="flex items-center gap-3"><FileCheck2 className="h-4 w-4" /> Admit Card</span>
+                        <Download className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === "My Results" && (
+            <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-stone-200 bg-stone-50">
+                <h2 className="font-bold text-stone-800">All Academic Results</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                {results.length === 0 ? (
+                  <p className="text-stone-500 text-center">No results available.</p>
+                ) : (
+                  results.map((res: any, idx: number) => (
+                    <div key={idx} className="border border-stone-200 rounded-lg overflow-hidden">
+                      <div className="bg-stone-50 px-4 py-3 border-b border-stone-200 flex justify-between items-center">
+                        <div>
+                          <h3 className="font-bold text-[#8d1c2f] text-lg">{res.examination} {res.examYear}</h3>
+                          <p className="text-xs text-stone-500">{res.programme}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`px-3 py-1 rounded text-xs font-bold uppercase ${res.resultStatus === 'PASS' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{res.resultStatus}</span>
+                        </div>
+                      </div>
+                      <div className="p-4 overflow-x-auto">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                          <thead className="text-xs text-stone-500 uppercase tracking-wider border-b border-stone-200">
+                            <tr>
+                              <th className="pb-2 pr-4 font-semibold">Subject</th>
+                              <th className="pb-2 px-4 font-semibold text-center">Max Marks</th>
+                              <th className="pb-2 px-4 font-semibold text-center">Min Marks</th>
+                              <th className="pb-2 pl-4 font-semibold text-right">Obtained</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-100">
+                            {res.subjects && res.subjects.map((sub: any, sIdx: number) => (
+                              <tr key={sIdx}>
+                                <td className="py-2 pr-4 text-stone-800 font-medium">{sub.name}</td>
+                                <td className="py-2 px-4 text-center text-stone-500">{sub.max}</td>
+                                <td className="py-2 px-4 text-center text-stone-500">{sub.min}</td>
+                                <td className="py-2 pl-4 text-right font-bold text-[#8d1c2f]">{sub.total}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="border-t border-stone-200 font-bold bg-stone-50/50">
+                            <tr>
+                              <td className="py-2 pr-4">GRAND TOTAL</td>
+                              <td colSpan={2}></td>
+                              <td className="py-2 pl-4 text-right text-lg text-[#8d1c2f]">{res.grandTotal}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab !== "My Dashboard" && activeTab !== "My Results" && (
+            <div className="bg-white rounded-xl p-8 border border-stone-200 shadow-sm text-center">
+              <h2 className="text-xl font-bold text-stone-800 mb-2">{activeTab}</h2>
+              <p className="text-stone-500">This section is currently under development.</p>
+            </div>
+          )}
+        </main>
+      </div>
+      
+      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-stone-950/50 md:hidden" />}
+    </div>
+  );
 }
 
 export default function App() {
@@ -1936,8 +2670,10 @@ export default function App() {
   }
 
   const isAdmin = page.startsWith("admin-");
+  const isSystem = page.startsWith("system-");
+  const isPortal = page === "student-zone";
   return <CmsContext.Provider value={{ cmsData, fetchCms }}>
-    {isAdmin ? <AdminShell page={page} navigate={navigate} notify={notify} /> : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
+    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? <AdminShell page={page} navigate={navigate} notify={notify} /> : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
     <AnimatePresence>{toast && <motion.div role="status" initial={{ opacity: 0, y: 16, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 8, x: "-50%" }} className="fixed bottom-6 left-1/2 z-[120] flex min-w-[280px] items-center gap-3 rounded-lg bg-[#4a131c] px-4 py-3 text-sm font-medium text-white shadow-2xl"><CheckCircle2 className="h-5 w-5 text-lime-400" />{String(toast)}</motion.div>}</AnimatePresence>
   </CmsContext.Provider>;
 }
