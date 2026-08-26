@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       email: data.email || '',
       phone: data.phone || '',
       address: data.address || '',
+      programmes: data.programmes || [],
       passwordHash: passwordHash
     });
 
@@ -62,6 +63,25 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     await Student.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Student deleted successfully' });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    await connectToDatabase();
+    const data = await request.json();
+    const { id, name, fatherName, dob, email, phone, address, programmes } = data;
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    const updated = await Student.findByIdAndUpdate(
+      id,
+      { name, fatherName, dob: new Date(dob), email, phone, address, programmes },
+      { new: true }
+    );
+    if (!updated) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Student updated successfully', student: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

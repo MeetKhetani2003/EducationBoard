@@ -8,6 +8,7 @@ export interface IStudent extends Document {
   email?: string;
   phone?: string;
   address?: string;
+  programmes?: string[];
   passwordHash: string;
 }
 
@@ -19,6 +20,7 @@ const StudentSchema: Schema = new Schema({
   email: { type: String },
   phone: { type: String },
   address: { type: String },
+  programmes: { type: [String], default: [] },
   passwordHash: { type: String, required: true }
 }, { timestamps: true });
 

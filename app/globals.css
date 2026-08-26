@@ -74,15 +74,21 @@ select {
 
   header,
   nav,
+  aside,
   footer,
   button,
-  [role="status"] {
+  [role="status"],
+  .no-print {
     display: none !important;
   }
 
   main {
     padding: 0 !important;
     background: #ffffff !important;
+  }
+  
+  .print-only {
+    display: block !important;
   }
 
   @page {

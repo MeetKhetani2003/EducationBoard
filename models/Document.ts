@@ -3,6 +3,7 @@ import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
 export interface IDoc extends MongooseDocument {
   title: string;
   category: string;
+  programme?: string;
   gridFsId: mongoose.Types.ObjectId;
   filename: string;
   contentType: string;
@@ -12,6 +13,7 @@ export interface IDoc extends MongooseDocument {
 const DocumentSchema: Schema = new Schema({
   title: { type: String, required: true },
   category: { type: String, required: true }, // e.g. 'Notice', 'Syllabus', 'Result'
+  programme: { type: String, required: false }, // Optional, can be 'All Programmes' or specific course
   gridFsId: { type: Schema.Types.ObjectId, required: true },
   filename: { type: String, required: true },
   contentType: { type: String, required: true },

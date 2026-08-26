@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const category = formData.get('category') as string;
+    const programme = formData.get('programme') as string || 'All Programmes';
 
     if (!file || !title || !category) {
       return NextResponse.json({ error: 'File, title, and category are required' }, { status: 400 });
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
           const newDoc = new DocumentModel({
             title,
             category,
+            programme,
             gridFsId: uploadStream.id,
             filename: file.name,
             contentType: file.type,
