@@ -37,8 +37,14 @@ export async function GET(request: Request) {
       });
     }
 
-    // List all documents
-    const docs = await DocumentModel.find({}).sort({ createdAt: -1 });
+    // List all documents with optional filters
+    const category = searchParams.get('category') || '';
+    const programme = searchParams.get('programme') || '';
+    const query: any = {};
+    if (category) query.category = category;
+    if (programme) query.programme = programme;
+
+    const docs = await DocumentModel.find(query).sort({ createdAt: -1 });
     return NextResponse.json(docs);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -6,11 +6,13 @@
   "/api/editorial/route": "app/api/editorial/route.js",
   "/api/exams/route": "app/api/exams/route.js",
   "/api/gallery/route": "app/api/gallery/route.js",
+  "/api/legalstatus/route": "app/api/legalstatus/route.js",
   "/api/programmes/route": "app/api/programmes/route.js",
   "/api/recognition/route": "app/api/recognition/route.js",
   "/api/results/parse/route": "app/api/results/parse/route.js",
   "/api/results/route": "app/api/results/route.js",
   "/api/semesters/route": "app/api/semesters/route.js",
+  "/api/student-exams/route": "app/api/student-exams/route.js",
   "/api/students/route": "app/api/students/route.js",
   "/api/subjects/route": "app/api/subjects/route.js",
   "/page": "app/page.js"

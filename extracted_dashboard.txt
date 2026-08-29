@@ -1,0 +1,106 @@
+function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeId: string | null; navigate: Navigate; notify: (msg: string) => void }) {
+3137:   const [programme, setProgramme] = useState<any>(null);
+3138:   const [loading, setLoading] = useState(true);
+3139:   const [exams, setExams] = useState<any[]>([]);
+3140:   const [students, setStudents] = useState<any[]>([]);
+3141:   const [results, setResults] = useState<any[]>([]);
+3142:   const [docs, setDocs] = useState<any[]>([]);
+3143:   
+3144:   // Modals and action forms states
+3145:   const [showExamModal, setShowExamModal] = useState(false);
+3146:   const [examTitle, setExamTitle] = useState("");
+3147:   const [examYear, setExamYear] = useState("2026");
+3148:   const [regStart, setRegStart] = useState("");
+3149:   const [examStart, setExamStart] = useState("");
+3150:   const [resultDate, setResultDate] = useState("");
+3151:   
+3152:   const [showDocModal, setShowDocModal] = useState(false);
+3153:   const [docTitle, setDocTitle] = useState("");
+3154:   const [docCategory, setDocCategory] = useState("Syllabus");
+3155:   const [docFile, setDocFile] = useState<File | null>(null);
+3156:   
+3157:   const [showStudentModal, setShowStudentModal] = useState(false);
+3158:   const [studentEnroll, setStudentEnroll] = useState("");
+3159:   const [studentName, setStudentName] = useState("");
+3160:   const [studentFather, setStudentFather] = useState("");
+3161:   const [studentDob, setStudentDob] = useState("");
+3162:   
+3163:   const [saving, setSaving] = useState(false);
+3164: 
+3165:   const fetchData = async () => {
+3166:     if (!programmeId) return;
+3167:     setLoading(true);
+3168:     try {
+3169:       // 1. Fetch programme details
+3170:       const progRes = await fetch(`/api/programmes?id=${programmeId}`);
+3171:       if (!progRes.ok) throw new Error("Programme not found");
+3172:       const progData = await progRes.json();
+3173:       setProgramme(progData);
+3174:       
+3175:       const progTitle = progData.title;
+3176:       
+3177:       // 2. Fetch exams
+3178:       const examsRes = await fetch(`/api/exams?programme=${encodeURIComponent(progTitle)}`);
+3179:       if (examsRes.ok) setExams(await examsRes.json());
+3180:       
+3181:       // 3. Fetch students
+3182:       const studentsRes = await fetch(`/api/students?programme=${encodeURIComponent(progTitle)}`);
+3183:       if (studentsRes.ok) setStudents(await studentsRes.json());
+3184:       
+3185:       // 4. Fetch results
+3186:       const resultsRes = await fetch(`/api/results?programme=${encodeURIComponent(progTitle)}`);
+3187:       if (resultsRes.ok) {
+3188:         const rData = await resultsRes.json();
+3189:         setResults(rData.results || []);
+3190:       }
+3191:       
+3192:       // 5. Fetch documents
+3193:       const docsRes = await fetch(`/api/documents?programme=${encodeURIComponent(progTitle)}`);
+3194:       if (docsRes.ok) setDocs(await docsRes.json());
+3195:       
+3196:     } catch (e: any) {
+3197:       notify("Error loading programme dashboard: " + e.message);
+3198:     } finally {
+3199:       setLoading(false);
+3200:     }
+3201:   };
+3202: 
+3203:   useEffect(() => {
+3204:     fetchData();
+3205:   }, [programmeId]);
+3206: 
+3207:   const handleCreateExam = async (e: React.FormEvent) => {
+3208:     e.preventDefault();
+3209:     if (!programme) return;
+3210:     setSaving(true);
+3211:     try {
+3212:       const res = await fetch("/api/exams", {
+3213:         method: "POST",
+3214:         headers: { "Content-Type": "application/json" },
+3215:         body: JSON.stringify({
+3216:           title: examTitle,
+3217:           programme: programme.title,
+3218:           examYear,
+3219:           registrationStartDate: regStart,
+3220:           examStartDate: examStart,
+3221:           resultDate
+3222:         })
+3223:       });
+3224:       if (res.ok) {
+3225:         notify("Examination created successfully!");
+3226:         setShowExamModal(false);
+3227:         setExamTitle("");
+3228:         setRegStart("");
+3229:         setExamStart("");
+3230:         setResultDate("");
+3231:         fetchData();
+3232:       } else {
+3233:         alert(await res.text());
+3234:       }
+3235:     } catch (err) {
+3236:       alert("Error saving exam");
+3237:     } finally {
+3238:       setSaving(false);
+<truncated 2245 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

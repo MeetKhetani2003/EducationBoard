@@ -6,6 +6,12 @@ export async function GET(request: Request) {
   try {
     await connectToDatabase();
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (id) {
+      const programme = await Programme.findById(id);
+      if (!programme) return NextResponse.json({ error: 'Programme not found' }, { status: 404 });
+      return NextResponse.json(programme);
+    }
     const search = searchParams.get('search') || '';
 
     const query = search 
@@ -43,6 +49,22 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    await connectToDatabase();
+    const data = await request.json();
+    const { id, ...updates } = data;
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    const prog = await Programme.findByIdAndUpdate(id, updates, { new: true });
+    if (!prog) return NextResponse.json({ error: 'Programme not found' }, { status: 404 });
+
+    return NextResponse.json({ message: 'Programme updated successfully', programme: prog });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     await connectToDatabase();
@@ -55,3 +77,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

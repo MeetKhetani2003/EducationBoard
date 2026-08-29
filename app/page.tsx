@@ -23,7 +23,7 @@ type Page =
   | "services" | "gallery" | "contact" | "admin-dashboard" | "admin-results"
   | "admin-import" | "admin-students" | "admin-exams" | "admin-news"
   | "admin-notices" | "admin-downloads" | "admin-programmes" | "admin-gallery"
-  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result" | "system-result-view" | "student-login";
+  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result" | "system-result-view" | "student-login" | "admin-programme-dashboard";
 
 type Navigate = (page: Page) => void;
 
@@ -629,11 +629,11 @@ function AdminHeader({ title, text, actions }: { title: string; text?: string; a
   return <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-semibold tracking-tight text-stone-900 md:text-3xl">{title}</h1>{text && <p className="mt-2 text-sm text-stone-500">{text}</p>}</div>{actions && <div className="flex flex-wrap gap-2">{actions}</div>}</div>;
 }
 
-function AdminShell({ page, navigate, notify }: { page: Page; navigate: Navigate; notify: (message: string) => void }) {
+function AdminShell({ page, navigate, notify, selectedProgrammeId, setSelectedProgrammeId }: { page: Page; navigate: Navigate; notify: (message: string) => void; selectedProgrammeId: string | null; setSelectedProgrammeId: (id: string | null) => void }) {
   const [open, setOpen] = useState(false);
   const pageTitle = adminNav.find((item) => item.page === page)?.label || (page === "admin-import" ? "Import Results" : "Administration");
   return <div className="min-h-screen bg-[#faf5f6] text-stone-800"><aside className={`fixed inset-y-0 left-0 z-50 w-[252px] border-r border-stone-800 bg-[#360e14] text-white transition-transform lg:transtone-x-0 ${open ? "transtone-x-0" : "-transtone-x-full"}`}><div className="flex h-[72px] items-center border-b border-white/10 px-5"><Logo inverse compact /><button onClick={() => setOpen(false)} className="ml-auto lg:hidden" aria-label="Close sidebar"><X className="h-5 w-5" /></button></div><nav className="h-[calc(100vh-136px)] overflow-y-auto px-3 py-4" aria-label="Admin navigation">{adminNav.map((item) => <button key={item.label} onClick={() => { navigate(item.page); setOpen(false); }} className={`mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium transition ${page === item.page || (page === "admin-import" && item.page === "admin-results") ? "bg-[#a1283c] text-white" : "text-stone-300 hover:bg-white/7 hover:text-white"}`}><item.icon className="h-[18px] w-[18px]" />{item.label}</button>)}</nav><button onClick={() => navigate("home")} className="absolute bottom-0 left-0 flex h-16 w-full items-center gap-3 border-t border-white/10 px-6 text-sm text-stone-300 hover:bg-white/5 hover:text-white"><ArrowLeft className="h-4 w-4" /> Back to public website</button></aside>
-    <div className="lg:pl-[252px]"><header className="sticky top-0 z-40 flex h-[72px] items-center border-b border-stone-200 bg-white px-4 md:px-7"><button onClick={() => setOpen(true)} className="mr-3 grid h-10 w-10 place-items-center rounded-lg border border-stone-200 lg:hidden" aria-label="Open sidebar"><Menu className="h-5 w-5" /></button><div className="hidden text-sm font-semibold text-stone-700 sm:block">{pageTitle}</div><div className="ml-auto flex items-center gap-2 md:gap-4"><label className="relative hidden md:block"><Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" /><input className="h-9 w-60 rounded-lg border border-stone-200 bg-stone-50 pl-9 pr-3 text-xs outline-none focus:border-[#a1283c]" placeholder="Search administration" /></label><button className="relative grid h-10 w-10 place-items-center rounded-lg border border-stone-200 text-stone-500"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" /></button><button className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#faebee] text-xs font-bold text-[#8d1c2f]">AM</span><span className="hidden text-left text-xs md:block"><b className="block text-stone-800">Anita Mehra</b><span className="text-stone-400">Administrator</span></span><ChevronDown className="hidden h-4 w-4 text-stone-400 md:block" /></button></div></header><main className="p-4 md:p-7 lg:p-8">{renderAdminPage(page, navigate, notify)}</main></div>
+    <div className="lg:pl-[252px]"><header className="sticky top-0 z-40 flex h-[72px] items-center border-b border-stone-200 bg-white px-4 md:px-7"><button onClick={() => setOpen(true)} className="mr-3 grid h-10 w-10 place-items-center rounded-lg border border-stone-200 lg:hidden" aria-label="Open sidebar"><Menu className="h-5 w-5" /></button><div className="hidden text-sm font-semibold text-stone-700 sm:block">{pageTitle}</div><div className="ml-auto flex items-center gap-2 md:gap-4"><label className="relative hidden md:block"><Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" /><input className="h-9 w-60 rounded-lg border border-stone-200 bg-stone-50 pl-9 pr-3 text-xs outline-none focus:border-[#a1283c]" placeholder="Search administration" /></label><button className="relative grid h-10 w-10 place-items-center rounded-lg border border-stone-200 text-stone-500"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" /></button><button className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#faebee] text-xs font-bold text-[#8d1c2f]">AM</span><span className="hidden text-left text-xs md:block"><b className="block text-stone-800">Anita Mehra</b><span className="text-stone-400">Administrator</span></span><ChevronDown className="hidden h-4 w-4 text-stone-400 md:block" /></button></div></header><main className="p-4 md:p-7 lg:p-8">{renderAdminPage(page, navigate, notify, selectedProgrammeId, setSelectedProgrammeId)}</main></div>
     <AnimatePresence>{open && <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-stone-950/50 lg:hidden" aria-label="Close sidebar overlay" />}</AnimatePresence></div>;
 }
 
@@ -716,8 +716,18 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
   const [mapping, setMapping] = useState<any>({});
   const [validatedData, setValidatedData] = useState<any[]>([]);
   const [errorsCount, setErrorsCount] = useState(0);
+  
+  const [programmesList, setProgrammesList] = useState<any[]>([]);
+  const [selectedProgTitle, setSelectedProgTitle] = useState("");
+  const [targetProgramme, setTargetProgramme] = useState<any>(null);
 
-  const steps = ["Upload File", "Map Fields", "Validate Data", "Preview", "Publish"];
+  const steps = ["Upload File", "Select Programme", "Map Fields", "Validate Data", "Preview", "Publish"];
+
+  useEffect(() => {
+    fetch("/api/programmes")
+      .then(res => res.json())
+      .then(data => setProgrammesList(data || []));
+  }, []);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -731,7 +741,16 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
       const data = await res.json();
       setParsedData(data);
       setMapping(data.mapping);
-      setStep(2);
+      
+      const excelProg = data.rawRows[0]?.[data.mapping.programme] || "";
+      const matched = programmesList.find(p => p.title.toLowerCase() === excelProg.toLowerCase());
+      if (matched) {
+        setTargetProgramme(matched);
+        setSelectedProgTitle(matched.title);
+        setStep(3);
+      } else {
+        setStep(2);
+      }
     } catch (err: any) {
       alert("Error parsing file: " + err.message);
     } finally {
@@ -744,9 +763,13 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
   }
 
   function runValidation() {
-    if (!parsedData) return;
+    if (!parsedData || !targetProgramme) {
+      alert("Programme selection is mandatory!");
+      return;
+    }
     const targetRows: any[] = [];
     let errs = 0;
+    const headerValues = Object.values(mapping).filter(v => v !== "");
 
     parsedData.rawRows.forEach((row: any) => {
       const enrollmentNumber = String(row[mapping.enrollmentNumber] || "").trim();
@@ -764,25 +787,84 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
       const isValid = enrollmentNumber !== "" && studentName !== "" && dob !== "";
       if (!isValid) errs++;
 
+      const subjects: any[] = [];
+      if (targetProgramme.subjects && targetProgramme.subjects.length > 0) {
+        targetProgramme.subjects.forEach((pSub: any, i: number) => {
+          const matchedKey = Object.keys(row).find(k => k.toLowerCase() === pSub.name.toLowerCase() || k.toLowerCase().replace(/_?(th|pr|ia|total)$/g, '') === pSub.name.toLowerCase());
+          const scoreVal = matchedKey ? Number(row[matchedKey]) || 0 : 0;
+          subjects.push({
+            sNo: String(i + 1),
+            name: pSub.name,
+            max: pSub.max,
+            min: pSub.min,
+            th: scoreVal,
+            pr: 0,
+            ia: 0,
+            total: scoreVal,
+            grade: scoreVal >= pSub.min ? "PASS" : "FAIL"
+          });
+        });
+      } else {
+        const rowKeys = Object.keys(row);
+        const subjectColumns = rowKeys.filter(k => !headerValues.includes(k));
+        const subjectMap: Record<string, any> = {};
+        subjectColumns.forEach(col => {
+          const val = row[col];
+          const baseName = col.replace(/_?(TH|PR|IA|Max|Min|Total|Grade)$/i, '').trim();
+          if (!subjectMap[baseName]) subjectMap[baseName] = { name: baseName };
+          const suffix = (col.match(/_(TH|PR|IA|Max|Min|Total|Grade)$/i) || [])[1]?.toUpperCase();
+          
+          if (suffix === 'TH') subjectMap[baseName].th = isNaN(Number(val)) ? val : Number(val);
+          else if (suffix === 'PR') subjectMap[baseName].pr = isNaN(Number(val)) ? val : Number(val);
+          else if (suffix === 'IA') subjectMap[baseName].ia = isNaN(Number(val)) ? val : Number(val);
+          else if (suffix === 'MAX') subjectMap[baseName].max = Number(val) || 100;
+          else if (suffix === 'MIN') subjectMap[baseName].min = Number(val) || 33;
+          else if (suffix === 'TOTAL') subjectMap[baseName].total = isNaN(Number(val)) ? val : Number(val);
+          else if (suffix === 'GRADE') subjectMap[baseName].grade = String(val);
+          else {
+            subjectMap[baseName].th = isNaN(Number(val)) ? val : Number(val);
+          }
+        });
+
+        Object.values(subjectMap).forEach((s: any, i) => {
+          const totalVal = Number(s.total) || (Number(s.th) || 0) + (Number(s.pr) || 0);
+          subjects.push({
+            sNo: String(i + 1),
+            name: s.name,
+            max: s.max || 100,
+            min: s.min || 33,
+            th: Number(s.th) || 0,
+            pr: Number(s.pr) || 0,
+            ia: Number(s.ia) || 0,
+            total: totalVal,
+            grade: s.grade || (totalVal >= (s.min || 33) ? "PASS" : "FAIL")
+          });
+        });
+      }
+
+      let grandTotal = 0;
+      subjects.forEach(s => grandTotal += s.total);
+
       targetRows.push({
         enrollmentNumber,
         rollNumber: String(row[mapping.rollNumber] || enrollmentNumber).trim(),
         studentName,
         fatherName: String(row[mapping.fatherName] || "N/A").trim(),
         dob,
-        programme: String(row[mapping.programme] || "Senior Secondary").trim(),
+        programme: targetProgramme.title,
         examination: String(row[mapping.examination] || "Public Examination").trim(),
         examYear: String(row[mapping.examYear] || "2026").trim(),
-        grandTotal: Number(row[mapping.grandTotal] || 0),
-        percentage: Number(row[mapping.percentage] || 0),
-        resultStatus: String(row[mapping.resultStatus] || "PASS").trim(),
+        subjects,
+        grandTotal,
+        percentage: Number(row[mapping.percentage] || ((grandTotal / (subjects.length * 100)) * 100).toFixed(2)),
+        resultStatus: String(row[mapping.resultStatus] || (grandTotal >= (subjects.length * 33) ? "PASS" : "FAIL")).trim(),
         isValid
       });
     });
 
     setValidatedData(targetRows);
     setErrorsCount(errs);
-    setStep(3);
+    setStep(4);
   }
 
   async function publish() {
@@ -806,7 +888,7 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
     }
   }
 
-  const targetFields = [
+    const targetFields = [
     { key: "enrollmentNumber", label: "Enrollment Number (Required)" },
     { key: "rollNumber", label: "Roll Number" },
     { key: "studentName", label: "Student Name (Required)" },
@@ -820,60 +902,95 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
     { key: "resultStatus", label: "Result Status" }
   ];
 
-  return <><AdminHeader title="Import Examination Results" text="Upload, validate and publish result records in a guided workflow." actions={<Button variant="secondary" onClick={() => navigate("admin-results")}><ArrowLeft className="h-4 w-4" /> Back to Results</Button>} /><section className="border border-stone-200 bg-white"><div className="grid grid-cols-5 border-b border-stone-200">{steps.map((label, index) => <div key={label} className={"relative p-3 text-center md:p-5 " + (step === index + 1 ? "bg-stone-50" : "")}><div className={"mx-auto grid h-8 w-8 place-items-center rounded-full text-xs font-bold " + (step > index + 1 ? "bg-lime-500 text-white" : step === index + 1 ? "bg-[#a1283c] text-white" : "bg-stone-100 text-stone-400")}>{step > index + 1 ? <Check className="h-4 w-4" /> : "0" + (index + 1)}</div><span className={"mt-2 hidden text-xs font-medium sm:block " + (step === index + 1 ? "text-[#a1283c]" : "text-stone-400")}>{label}</span></div>)}</div><div className="p-5 md:p-8">
-      {step === 1 && <div className="mx-auto max-w-2xl"><label className="flex min-h-72 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 p-8 text-center transition hover:border-[#a1283c] hover:bg-stone-100"><span className="grid h-14 w-14 place-items-center rounded-full bg-white text-[#a1283c] shadow-sm"><UploadCloud className="h-7 w-7" /></span><h2 className="mt-5 font-semibold text-stone-800">Select result file here</h2><p className="mt-2 text-xs text-stone-400">Choose XLSX, XLS or CSV. Maximum file size 25 MB.</p><span className="mt-5 rounded-lg bg-[#a1283c] px-4 py-2 text-xs font-semibold text-white">Choose file</span><input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="hidden" /></label>{uploading && <div className="mt-5 text-center text-xs text-stone-500">Processing and parsing Excel headers...</div>}</div>}
+  return <><AdminHeader title="Import Examination Results" text="Upload, validate and publish result records in a guided workflow." actions={<Button variant="secondary" onClick={() => navigate("admin-results")}><ArrowLeft className="h-4 w-4" /> Back to Results</Button>} /><section className="border border-stone-200 bg-white"><div className="grid grid-cols-6 border-b border-stone-200">{steps.map((label, index) => <div key={label} className={"relative p-3 text-center md:p-5 " + (step === index + 1 ? "bg-stone-50" : "")}><div className={"mx-auto grid h-8 w-8 place-items-center rounded-full text-xs font-bold " + (step > index + 1 ? "bg-lime-500 text-white" : step === index + 1 ? "bg-[#a1283c] text-white" : "bg-stone-100 text-stone-400")}>{step > index + 1 ? <Check className="h-4 w-4" /> : "0" + (index + 1)}</div><span className={"mt-2 hidden text-xs font-medium sm:block " + (step === index + 1 ? "text-[#a1283c]" : "text-stone-400")}>{label}</span></div>)}</div><div className="p-5 md:p-8">
+      {step === 1 && <div className="mx-auto max-w-2xl"><label className="flex min-h-72 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 p-8 text-center transition hover:border-[#a1283c] hover:bg-stone-100"><span className="grid h-14 w-14 place-items-center rounded-full bg-white text-[#a1283c] shadow-sm"><UploadCloud className="h-7 w-7" /></span><h2 className="mt-5 font-semibold text-stone-800">Select result file here</h2><p className="mt-2 text-xs text-stone-400">Choose XLSX, XLS or CSV. Maximum file size 25 MB.</p><span className="mt-5 rounded-lg bg-[#a1283c] px-4 py-2 text-xs font-semibold text-white">Choose file</span><input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="hidden" /></label>{uploading && <div className="mt-5 text-center text-xs text-stone-500">Processing and parsing Excel headers...</div>}<div className="mt-4 text-center"><a href="/sample_results.xlsx" download className="text-xs text-[#a1283c] font-semibold hover:underline">Download Sample Excel Template</a></div></div>}
       
-      {step === 2 && parsedData && <div className="mx-auto max-w-3xl"><div className="mb-6 flex items-center gap-3 bg-lime-50 p-4 text-sm text-lime-700"><FileSpreadsheet className="h-5 w-5" /><b>{parsedData.fileName}</b><span className="ml-auto text-xs">Rows found: {parsedData.totalRowsCount}</span></div><h2 className="font-semibold text-stone-800">Map Excel Columns to Result Fields</h2><p className="mt-1 text-xs text-stone-400">Map the column headers of your uploaded Excel sheet to database result fields.</p><div className="mt-5 grid gap-3">{targetFields.map((field) => <div key={field.key} className="grid items-center gap-3 border-b border-stone-100 pb-3 sm:grid-cols-[1fr_40px_1fr]"><div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs text-stone-600 font-semibold">{field.label}</div><ArrowRight className="mx-auto h-4 w-4 text-stone-300" /><select value={mapping[field.key] || ""} onChange={(e) => handleMapChange(field.key, e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2.5 text-xs text-stone-600"><option value="">-- Choose Column --</option>{parsedData.headers.map((h) => <option key={h} value={h}>{h}</option>)}</select></div>)}</div></div>}
+      {step === 2 && <div className="mx-auto max-w-xl space-y-4"><h2 className="font-bold text-stone-800 text-sm">Mandatory Program Selection</h2><p className="text-xs text-stone-400">Please select the target Programme for this result sheet. If the Programme is not created, you must go to Programmes and create it first.</p><select className="w-full h-11 border rounded-lg px-3 text-xs outline-none" value={selectedProgTitle} onChange={e => { const found = programmesList.find(p => p.title === e.target.value); if (found) { setTargetProgramme(found); setSelectedProgTitle(found.title); } }}><option value="">-- Select Target Program --</option>{programmesList.map(p => <option key={p._id} value={p.title}>{p.title}</option>)}</select></div>}
+
+      {step === 3 && parsedData && <div className="mx-auto max-w-3xl"><div className="mb-6 flex items-center gap-3 bg-lime-50 p-4 text-sm text-lime-700"><FileSpreadsheet className="h-5 w-5" /><b>{parsedData.fileName}</b><span className="ml-auto text-xs">Rows found: {parsedData.totalRowsCount}</span></div><h2 className="font-semibold text-stone-800">Map Excel Columns to Result Fields</h2><p className="mt-1 text-xs text-stone-400">Map the column headers of your uploaded Excel sheet to database result fields.</p><div className="mt-5 grid gap-3">{targetFields.map((field) => <div key={field.key} className="grid items-center gap-3 border-b border-stone-100 pb-3 sm:grid-cols-[1fr_40px_1fr]"><div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs text-stone-600 font-semibold">{field.label}</div><ArrowRight className="mx-auto h-4 w-4 text-stone-300" /><select value={mapping[field.key] || ""} onChange={(e) => handleMapChange(field.key, e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2.5 text-xs text-stone-600"><option value="">-- Choose Column --</option>{parsedData.headers.map((h) => <option key={h} value={h}>{h}</option>)}</select></div>)}</div></div>}
       
-      {step === 3 && <div className="mx-auto max-w-2xl text-center"><motion.div initial={{ scale: .8 }} animate={{ scale: 1 }} className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-lime-50 text-lime-600"><ClipboardCheck className="h-8 w-8" /></motion.div><h2 className="mt-5 text-xl font-semibold text-stone-800">Validation completed</h2><p className="mt-2 text-sm text-stone-500">Validation run completed on the mapped fields.</p><div className="mt-7 grid gap-px overflow-hidden rounded-lg border border-stone-200 bg-stone-200 text-left sm:grid-cols-3"><div className="bg-white p-5"><CheckCircle2 className="h-5 w-5 text-stone-600" /><b className="mt-3 block text-xl text-stone-800">{validatedData.length}</b><span className="text-xs text-stone-400">Total Rows</span></div><div className="bg-white p-5"><CheckCircle2 className="h-5 w-5 text-lime-600" /><b className="mt-3 block text-xl text-stone-800">{validatedData.length - errorsCount}</b><span className="text-xs text-stone-400">Ready to publish</span></div><div className="bg-white p-5"><AlertCircle className="h-5 w-5 text-amber-600" /><b className="mt-3 block text-xl text-stone-800">{errorsCount}</b><span className="text-xs text-stone-400">Invalid (Missing fields)</span></div></div></div>}
+      {step === 4 && <div className="mx-auto max-w-2xl text-center"><motion.div initial={{ scale: .8 }} animate={{ scale: 1 }} className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-lime-50 text-lime-600"><ClipboardCheck className="h-8 w-8" /></motion.div><h2 className="mt-5 text-xl font-semibold text-stone-800">Validation completed</h2><p className="mt-2 text-sm text-stone-500">Validation run completed on the mapped fields.</p><div className="mt-7 grid gap-px overflow-hidden rounded-lg border border-stone-200 bg-stone-200 text-left sm:grid-cols-3"><div className="bg-white p-5"><CheckCircle2 className="h-5 w-5 text-stone-600" /><b className="mt-3 block text-xl text-stone-800">{validatedData.length}</b><span className="text-xs text-stone-400">Total Rows</span></div><div className="bg-white p-5"><CheckCircle2 className="h-5 w-5 text-lime-600" /><b className="mt-3 block text-xl text-stone-800">{validatedData.length - errorsCount}</b><span className="text-xs text-stone-400">Ready to publish</span></div><div className="bg-white p-5"><AlertCircle className="h-5 w-5 text-amber-600" /><b className="mt-3 block text-xl text-stone-800">{errorsCount}</b><span className="text-xs text-stone-400">Invalid (Missing fields)</span></div></div></div>}
       
-      {step === 4 && <div><div className="mb-5 flex items-center justify-between"><div><h2 className="font-semibold text-stone-800">Preview result records</h2><p className="mt-1 text-xs text-stone-400">Previewing parsed records.</p></div></div><div className="overflow-x-auto border border-stone-200"><table className="w-full min-w-[700px] text-left text-xs"><thead className="bg-stone-50 text-stone-400"><tr>{["Student", "Enrollment", "Programme", "Marks", "Status", "Validation"].map((item) => <th className="px-4 py-3" key={item}>{item}</th>)}</tr></thead><tbody>{validatedData.slice(0, 10).map((row, index) => <tr className="border-t border-stone-100 hover:bg-stone-50" key={index}><td className="px-4 py-3 font-medium">{row.studentName || "N/A"}</td><td className="px-4 py-3 text-stone-500">{row.enrollmentNumber || "N/A"}</td><td className="px-4 py-3 text-stone-500">{row.programme}</td><td className="px-4 py-3 text-stone-500">{row.grandTotal} ({row.percentage}%)</td><td className="px-4 py-3 text-stone-500">{row.resultStatus}</td><td className="px-4 py-3"><StatusBadge tone={row.isValid ? "green" : "amber"}>{row.isValid ? "Valid" : "Invalid Date/Name/Enrollment"}</StatusBadge></td></tr>)}</tbody></table></div></div>}
+      {step === 5 && <div><div className="mb-5 flex items-center justify-between"><div><h2 className="font-semibold text-stone-800">Preview result records</h2><p className="mt-1 text-xs text-stone-400">Previewing parsed records.</p></div></div><div className="overflow-x-auto border border-stone-200"><table className="w-full min-w-[700px] text-left text-xs"><thead className="bg-stone-50 text-stone-400"><tr>{["Student", "Enrollment", "Programme", "Marks", "Status", "Validation"].map((item) => <th className="px-4 py-3" key={item}>{item}</th>)}</tr></thead><tbody>{validatedData.slice(0, 10).map((row, index) => <tr className="border-t border-stone-100 hover:bg-stone-50" key={index}><td className="px-4 py-3 font-medium">{row.studentName || "N/A"}</td><td className="px-4 py-3 text-stone-500">{row.enrollmentNumber || "N/A"}</td><td className="px-4 py-3 text-stone-500">{row.programme}</td><td className="px-4 py-3 text-stone-500">{row.grandTotal} ({row.percentage}%)</td><td className="px-4 py-3 text-stone-500">{row.resultStatus}</td><td className="px-4 py-3"><StatusBadge tone={row.isValid ? "green" : "amber"}>{row.isValid ? "Valid" : "Invalid Date/Name/Enrollment"}</StatusBadge></td></tr>)}</tbody></table></div></div>}
       
-      {step === 5 && <div className="mx-auto max-w-xl py-8 text-center"><ShieldCheck className="mx-auto h-14 w-14 text-[#a1283c]" /><h2 className="mt-5 text-xl font-semibold text-stone-800">Ready to publish results</h2><p className="mt-2 text-sm leading-6 text-stone-500">All valid records will become live and searchable immediately. Invalid records will be skipped.</p></div>}
+      {step === 6 && <div className="mx-auto max-w-xl py-8 text-center"><ShieldCheck className="mx-auto h-14 w-14 text-[#a1283c]" /><h2 className="mt-5 text-xl font-semibold text-stone-800">Ready to publish results</h2><p className="mt-2 text-sm leading-6 text-stone-500">All valid records will become live immediately.</p></div>}
       
-      <div className="mt-8 flex items-center justify-between border-t border-stone-200 pt-5"><Button variant="secondary" disabled={step === 1} onClick={() => setStep(Math.max(1, step - 1))}>Previous</Button>{step > 1 && <Button onClick={step === 5 ? () => setConfirm(true) : step === 2 ? runValidation : () => setStep(step + 1)}>{step === 3 ? "Preview Results" : step === 5 ? "Publish Results" : "Continue"}<ArrowRight className="h-4 w-4" /></Button>}</div>
+      <div className="mt-8 flex items-center justify-between border-t border-stone-200 pt-5"><Button variant="secondary" disabled={step === 1} onClick={() => setStep(Math.max(1, step - 1))}>Previous</Button>{step > 1 && <Button onClick={step === 6 ? () => setConfirm(true) : step === 3 ? runValidation : () => setStep(step + 1)}>{step === 4 ? "Preview Results" : step === 6 ? "Publish Results" : "Continue"}<ArrowRight className="h-4 w-4" /></Button>}</div>
     </div></section>
     <AnimatePresence>{confirm && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.div initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="grid h-12 w-12 place-items-center rounded-full bg-amber-50 text-amber-600"><Bell className="h-6 w-6" /></div><h2 className="mt-5 text-xl font-semibold text-stone-900">Publish results?</h2><p className="mt-2 text-sm leading-6 text-stone-500">Are you sure you want to write these results to the database?</p><div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={() => setConfirm(false)}>Cancel</Button><Button onClick={publish}>Confirm & Publish</Button></div></motion.div></motion.div>}</AnimatePresence></>;
-}
-
-function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (message: string) => void }) {
+  }
+  function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (message: string) => void }) {
   const [saving, setSaving] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [enrollmentNumber, setEnrollmentNumber] = useState("");
   const [rollNumber, setRollNumber] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [dob, setDob] = useState("");
-  const [programme, setProgramme] = useState("Senior Secondary");
+  const [programme, setProgramme] = useState("");
   const [examination, setExamination] = useState("June Public Examination");
   const [examYear, setExamYear] = useState("2026");
   const [percentage, setPercentage] = useState(0);
   const [resultStatus, setResultStatus] = useState("PASS");
   
-  const [subjects, setSubjects] = useState([
-    { sNo: "1", name: "Hindi", max: 100, min: 33, th: 0, pr: 0, total: 0, grade: "A" },
-    { sNo: "2", name: "English", max: 100, min: 33, th: 0, pr: 0, total: 0, grade: "A" },
-  ]);
+  const [programmesList, setProgrammesList] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/programmes")
+      .then(res => res.json())
+      .then(data => {
+        setProgrammesList(data || []);
+        if (data && data.length > 0) {
+          setProgramme(data[0].title);
+          loadPresetSubjects(data[0]);
+        }
+      });
+  }, []);
+
+  const loadPresetSubjects = (prog: any) => {
+    if (prog && prog.subjects && prog.subjects.length > 0) {
+      setSubjects(prog.subjects.map((s: any, idx: number) => ({
+        sNo: String(idx + 1),
+        name: s.name,
+        max: s.max,
+        min: s.min,
+        th: 0,
+        pr: 0,
+        total: 0,
+        grade: "A"
+      })));
+    } else {
+      setSubjects([
+        { sNo: "1", name: "Hindi", max: 100, min: 33, th: 0, pr: 0, total: 0, grade: "A" },
+        { sNo: "2", name: "English", max: 100, min: 33, th: 0, pr: 0, total: 0, grade: "A" },
+      ]);
+    }
+  };
+
+  const handleProgChange = (progTitle: string) => {
+    setProgramme(progTitle);
+    const found = programmesList.find(p => p.title === progTitle);
+    if (found) loadPresetSubjects(found);
+  };
 
   const addSubject = () => {
     setSubjects([...subjects, { sNo: String(subjects.length + 1), name: "", max: 100, min: 33, th: 0, pr: 0, total: 0, grade: "" }]);
   };
 
-  const removeSubject = (index) => {
+  const removeSubject = (index: number) => {
     setSubjects(subjects.filter((_, i) => i !== index).map((s, idx) => ({ ...s, sNo: String(idx + 1) })));
   };
 
-  const updateSubject = (index, field, value) => {
+  const updateSubject = (index: number, field: string, value: any) => {
     const updated = [...subjects];
     updated[index][field] = value;
-    if (field === 'th' || field === 'pr') {
-      updated[index].total = Number(updated[index].th || 0) + Number(updated[index].pr || 0);
-    }
+    if (['th', 'pr', 'ia'].includes(field)) { updated[index].total = Number(updated[index].th || 0) + Number(updated[index].pr || 0) + Number(updated[index].ia || 0); }
     setSubjects(updated);
   };
 
   const grandTotal = subjects.reduce((sum, s) => sum + (s.total || 0), 0);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
@@ -901,7 +1018,7 @@ function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (mes
       if (!res.ok) throw new Error(await res.text());
       notify("Manual result created successfully!");
       navigate("admin-results");
-    } catch (err) {
+    } catch (err: any) {
       alert("Error saving: " + err.message);
     } finally {
       setSaving(false);
@@ -936,10 +1053,8 @@ function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (mes
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Programme</label>
-            <select className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" value={programme} onChange={e => setProgramme(e.target.value)}>
-              <option value="Secondary">Secondary</option>
-              <option value="Senior Secondary">Senior Secondary</option>
-              <option value="Vocational">Vocational</option>
+            <select className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none font-sans" value={programme} onChange={e => handleProgChange(e.target.value)}>
+              {programmesList.map(p => <option key={p._id} value={p.title}>{p.title}</option>)}
             </select>
           </div>
           <div>
@@ -977,6 +1092,7 @@ function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (mes
                 <th className="px-4 py-2 w-20">Min Marks</th>
                 <th className="px-4 py-2 w-20">Theory Marks</th>
                 <th className="px-4 py-2 w-20">Practical Marks</th>
+                <th className="px-4 py-2 w-20">Internal Marks</th>
                 <th className="px-4 py-2 w-20">Total</th>
                 <th className="px-4 py-2 w-20">Grade</th>
                 <th className="px-4 py-2 w-12"></th>
@@ -1000,6 +1116,9 @@ function AdminAddResult({ navigate, notify }: { navigate: Navigate; notify: (mes
                   </td>
                   <td className="px-4 py-2">
                     <input type="number" className="w-full rounded border border-stone-200 p-2 text-xs focus:border-[#a1283c] outline-none" value={sub.pr} onChange={e => updateSubject(idx, "pr", Number(e.target.value))} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input type="number" className="w-full rounded border border-stone-200 p-2 text-xs focus:border-[#a1283c] outline-none" value={sub.ia} onChange={e => updateSubject(idx, "ia", Number(e.target.value))} />
                   </td>
                   <td className="px-4 py-2 font-bold">{sub.total}</td>
                   <td className="px-4 py-2">
@@ -1038,16 +1157,6 @@ function AdminStudents({ notify }: { notify: (message: string) => void }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
-  // Edit form states
-  const [editName, setEditName] = useState("");
-  const [editFatherName, setEditFatherName] = useState("");
-  const [editDob, setEditDob] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editAddress, setEditAddress] = useState("");
-  const [editProgs, setEditProgs] = useState<string[]>([]);
-  const [updating, setUpdating] = useState(false);
-
   // Form states
   const [name, setName] = useState("");
   const [enrollmentNumber, setEnrollmentNumber] = useState("");
@@ -1082,40 +1191,6 @@ function AdminStudents({ notify }: { notify: (message: string) => void }) {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const handleUpdateStudent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStudent) return;
-    setUpdating(true);
-    try {
-      const res = await fetch("/api/students", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selectedStudent._id,
-          name: editName,
-          fatherName: editFatherName,
-          dob: editDob,
-          email: editEmail,
-          phone: editPhone,
-          address: editAddress,
-          programmes: editProgs
-        })
-      });
-      if (res.ok) {
-        notify("Student profile updated successfully!");
-        setSelectedStudent(null);
-        fetchData();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Update failed");
-      }
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1167,22 +1242,13 @@ function AdminStudents({ notify }: { notify: (message: string) => void }) {
     (row.enrollmentNumber || "").toLowerCase().includes(query.toLowerCase())
   );
 
-  return <><AdminHeader title="Students Directory" text="Manage registered learners and their profile database." actions={<Button onClick={() => setShowAddModal(true)}><UserPlus className="h-4 w-4" /> Add Student</Button>} /><section className="border border-stone-200 bg-white"><div className="flex gap-3 border-b border-stone-200 p-4"><label className="relative flex-1"><Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" /><input value={query} onChange={e => setQuery(e.target.value)} className="h-9 w-full rounded-lg border border-stone-200 pl-9 pr-3 text-xs outline-none focus:border-[#a1283c]" placeholder="Search by name or enrollment number..." /></label></div><div className="divide-y divide-stone-100">{loading ? <div className="p-8 text-center text-stone-400 text-xs">Loading students...</div> : rows.length === 0 ? <div className="p-8 text-center text-stone-400 text-xs">No student records found.</div> : rows.map((row) => <div key={row._id} className="grid gap-3 p-4 md:grid-cols-[1fr_150px_100px_90px] md:items-center"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><User className="h-5 w-5" /></span><div><h2 className="text-xs font-semibold text-stone-800">{row.name}</h2><p className="mt-1 text-[11px] text-stone-400">Enrollment: {row.enrollmentNumber}</p></div></div><span className="text-xs text-stone-500">{row.phone || "No Phone"}</span><span className="text-xs text-stone-400">{row.dob ? new Date(row.dob).toLocaleDateString() : "-"}</span><div className="flex gap-1 md:justify-end"><button onClick={() => {
-  setSelectedStudent(row);
-  setEditName(row.name || "");
-  setEditFatherName(row.fatherName || "");
-  setEditDob(row.dob ? new Date(row.dob).toISOString().split('T')[0] : "");
-  setEditEmail(row.email || "");
-  setEditPhone(row.phone || "");
-  setEditAddress(row.address || "");
-  setEditProgs(row.programmes || []);
-}} className="grid h-8 w-8 place-items-center rounded hover:bg-stone-50 text-stone-600" title="Edit Student"><Eye className="h-4 w-4" /></button><button onClick={() => handleDelete(row._id)} className="grid h-8 w-8 place-items-center rounded hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></div>)}</div></section>
+  return <><AdminHeader title="Students Directory" text="Manage registered learners and their profile database." actions={<Button onClick={() => setShowAddModal(true)}><UserPlus className="h-4 w-4" /> Add Student</Button>} /><section className="border border-stone-200 bg-white"><div className="flex gap-3 border-b border-stone-200 p-4"><label className="relative flex-1"><Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" /><input value={query} onChange={e => setQuery(e.target.value)} className="h-9 w-full rounded-lg border border-stone-200 pl-9 pr-3 text-xs outline-none focus:border-[#a1283c]" placeholder="Search by name or enrollment number..." /></label></div><div className="divide-y divide-stone-100">{loading ? <div className="p-8 text-center text-stone-400 text-xs">Loading students...</div> : rows.length === 0 ? <div className="p-8 text-center text-stone-400 text-xs">No student records found.</div> : rows.map((row) => <div key={row._id} className="grid gap-3 p-4 md:grid-cols-[1fr_150px_100px_90px] md:items-center"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><User className="h-5 w-5" /></span><div><h2 className="text-xs font-semibold text-stone-800">{row.name}</h2><p className="mt-1 text-[11px] text-stone-400">Enrollment: {row.enrollmentNumber}</p></div></div><span className="text-xs text-stone-500">{row.phone || "No Phone"}</span><span className="text-xs text-stone-400">{row.dob ? new Date(row.dob).toLocaleDateString() : "-"}</span><div className="flex gap-1 md:justify-end"><button onClick={() => setSelectedStudent(row)} className="grid h-8 w-8 place-items-center rounded hover:bg-stone-50 text-stone-600"><Eye className="h-4 w-4" /></button><button onClick={() => handleDelete(row._id)} className="grid h-8 w-8 place-items-center rounded hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></div>)}</div></section>
 
     {/* ADD STUDENT MODAL */}
     <AnimatePresence>{showAddModal && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.div initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-4 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Add Student Record</h3><button onClick={() => setShowAddModal(false)}><X className="h-5 w-5 text-stone-400" /></button></div><form onSubmit={handleAddStudent} className="space-y-4"><div className="grid gap-4 sm:grid-cols-2"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Student Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={name} onChange={e => setName(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Enrollment Number *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={enrollmentNumber} onChange={e => setEnrollmentNumber(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Father's Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={fatherName} onChange={e => setFatherName(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Date of Birth *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={dob} onChange={e => setDob(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Email</label><input type="email" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={email} onChange={e => setEmail(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Phone</label><input className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={phone} onChange={e => setPhone(e.target.value)} /></div><div className="sm:col-span-2"><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Course / Programme Allocation</label><div className="mt-1 border border-stone-200 rounded p-3 bg-stone-50 grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">{progs.map(p => (<label key={p._id} className="flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer"><input type="checkbox" checked={selectedProgs.includes(p.title)} onChange={e => { if (e.target.checked) { setSelectedProgs([...selectedProgs, p.title]); } else { setSelectedProgs(selectedProgs.filter(item => item !== p.title)); } }} className="rounded border-stone-300 text-[#a1283c] focus:ring-[#a1283c]" />{p.title}</label>))}</div></div><div className="sm:col-span-2"><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Address</label><textarea rows={2} className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={address} onChange={e => setAddress(e.target.value)} /></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Saving..." : "Save Student"}</Button></div></form></motion.div></motion.div>}</AnimatePresence>
 
-    {/* EDIT PROFILE MODAL */}
-    <AnimatePresence>{selectedStudent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.div initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-4 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Edit Student Profile</h3><button onClick={() => setSelectedStudent(null)}><X className="h-5 w-5 text-stone-400" /></button></div><form onSubmit={handleUpdateStudent} className="space-y-4"><div className="grid gap-4 sm:grid-cols-2"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Student Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editName} onChange={e => setEditName(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Enrollment Number</label><input disabled className="w-full rounded border border-stone-200 p-2 text-xs bg-stone-100 outline-none text-stone-500" value={selectedStudent.enrollmentNumber} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Father's Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editFatherName} onChange={e => setEditFatherName(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Date of Birth *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editDob} onChange={e => setEditDob(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Email</label><input type="email" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editEmail} onChange={e => setEditEmail(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Phone</label><input className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editPhone} onChange={e => setEditPhone(e.target.value)} /></div><div className="sm:col-span-2"><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Course / Programme Allocation</label><div className="mt-1 border border-stone-200 rounded p-3 bg-stone-50 grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">{progs.map(p => (<label key={p._id} className="flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer"><input type="checkbox" checked={editProgs.includes(p.title)} onChange={e => { if (e.target.checked) { setEditProgs([...editProgs, p.title]); } else { setEditProgs(editProgs.filter(item => item !== p.title)); } }} className="rounded border-stone-300 text-[#a1283c] focus:ring-[#a1283c]" />{p.title}</label>))}</div></div><div className="sm:col-span-2"><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Address</label><textarea rows={2} className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={editAddress} onChange={e => setEditAddress(e.target.value)} /></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setSelectedStudent(null)}>Cancel</Button><Button disabled={updating} type="submit">{updating ? "Saving Changes..." : "Save Changes"}</Button></div></form></motion.div></motion.div>}</AnimatePresence></>;
+    {/* VIEW DETAILS MODAL */}
+    <AnimatePresence>{selectedStudent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.div initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Student Profile Details</h3><button onClick={() => setSelectedStudent(null)}><X className="h-5 w-5 text-stone-400" /></button></div><div className="space-y-3 text-xs"><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Full Name</span><span className="text-stone-800 font-bold">{selectedStudent.name}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Enrollment Number</span><span className="text-stone-800 font-semibold">{selectedStudent.enrollmentNumber}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Father's Name</span><span className="text-stone-800">{selectedStudent.fatherName}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Date of Birth</span><span className="text-stone-800">{selectedStudent.dob ? new Date(selectedStudent.dob).toLocaleDateString() : "-"}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Email Address</span><span className="text-stone-800">{selectedStudent.email || "N/A"}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Phone Number</span><span className="text-stone-800">{selectedStudent.phone || "N/A"}</span></div><div className="grid grid-cols-2 border-b border-stone-100 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Address</span><span className="text-stone-800 whitespace-pre-wrap">{selectedStudent.address || "N/A"}</span></div><div className="grid grid-cols-2 pb-2"><span className="text-stone-400 font-semibold uppercase tracking-wider">Allocated Programmes</span><span className="text-stone-800 font-bold">{selectedStudent.programmes && selectedStudent.programmes.length > 0 ? selectedStudent.programmes.join(', ') : "None"}</span></div></div><div className="flex justify-end border-t border-stone-200 pt-3 mt-4"><Button onClick={() => setSelectedStudent(null)}>Close</Button></div></motion.div></motion.div>}</AnimatePresence></>;
 }
 function AdminExams({ notify }: { notify: (message: string) => void }) {
   const [exams, setExams] = useState<any[]>([]);
@@ -1694,7 +1760,7 @@ function AdminSettings({ notify }) {
 }
 
 
-function AdminCollection({ page, notify }: { page: Page; notify: (message: string) => void }) {
+function AdminCollection({ page, notify, navigate, setSelectedProgrammeId }: { page: Page; notify: (message: string) => void; navigate?: Navigate; setSelectedProgrammeId?: (id: string | null) => void }) {
   const [progs, setProgs] = useState<any[]>([]);
   const [loadingProgs, setLoadingProgs] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1900,7 +1966,8 @@ function AdminCollection({ page, notify }: { page: Page; notify: (message: strin
 
   if (page === "admin-settings") return <AdminSettings notify={notify} />;
   
-  if (page === "admin-programmes") return <><AdminHeader title="Programmes Management" text="Manage academic pathways and programme information." actions={<Button onClick={() => setShowAddModal(true)}><Plus className="h-4 w-4" /> Add Programme</Button>} /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{loadingProgs ? <div className="p-5 text-stone-400 text-xs">Loading programmes...</div> : progs.length === 0 ? <div className="p-5 text-stone-400 text-xs">No programmes found in database. Add one.</div> : progs.map((item) => <article key={item._id} className="border border-stone-200 bg-white"><img src={item.image} alt="" className="aspect-[16/7] w-full object-cover" /><div className="p-5"><div className="flex justify-between"><StatusBadge tone="green">Published</StatusBadge></div><h2 className="mt-4 font-semibold text-stone-800">{item.title}</h2><p className="mt-2 text-xs leading-5 text-stone-500">{item.eligibility} / {item.duration}</p><p className="mt-2 text-xs text-stone-400 line-clamp-2">{item.text}</p><div className="mt-4 flex gap-2"><Button onClick={() => handleDeleteProg(item._id)} variant="secondary" className="min-h-9 flex-1 text-red-600 border-red-100 hover:bg-red-50"><Trash2 className="h-4 w-4" /> Delete</Button></div></div></article>)}</div>
+  if (page === "admin-programmes") return <><AdminHeader title="Programmes Management" text="Manage academic pathways and programme information." actions={<Button onClick={() => setShowAddModal(true)}><Plus className="h-4 w-4" /> Add Programme</Button>} /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{loadingProgs ? <div className="p-5 text-stone-400 text-xs">Loading programmes...</div> : progs.length === 0 ? <div className="p-5 text-stone-400 text-xs">No programmes found in database. Add one.</div> : progs.map((item) => <article key={item._id} className="border border-stone-200 bg-white"><img src={item.image} alt="" className="aspect-[16/7] w-full object-cover" /><div className="p-5"><div className="flex justify-between"><StatusBadge tone="green">Published</StatusBadge></div><h2 className="mt-4 font-semibold text-stone-800">{item.title}</h2><p className="mt-2 text-xs leading-5 text-stone-500">{item.eligibility} / {item.duration}</p><p className="mt-2 text-xs text-stone-400 line-clamp-2">{item.text}</p><div className="mt-4 flex gap-2"><Button onClick={() => handleDeleteProg(item._id)} variant="secondary" className="min-h-9 text-red-600 border-red-100 hover:bg-red-50"><Trash2 className="h-4 w-4" /> Delete</Button>
+            <Button onClick={() => { if (setSelectedProgrammeId && navigate) { setSelectedProgrammeId(item._id); navigate("admin-programme-dashboard"); } }} className="min-h-9 flex-1"><GraduationCap className="h-4 w-4" /> Manage</Button></div></div></article>)}</div>
   
   <AnimatePresence>{showAddModal && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.form initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} onSubmit={handleAddProg} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Add New Programme</h3><button type="button" onClick={() => setShowAddModal(false)}><X className="h-5 w-5 text-stone-400" /></button></div><div className="space-y-4"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Programme Title *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Higher Secondary Education" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Eligibility *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={eligibility} onChange={e => setEligibility(e.target.value)} placeholder="e.g. Class X pass" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Duration *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={duration} onChange={e => setDuration(e.target.value)} placeholder="e.g. 2 academic years" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Description *</label><textarea required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" rows={3} value={text} onChange={e => setText(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Programme Image</label><div className="flex flex-wrap items-center gap-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3">{image && <img src={image} alt="" className="h-12 w-20 rounded object-cover border" />}<label className="cursor-pointer rounded border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50">Choose Image<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; notify("Uploading programme image..."); const fd = new FormData(); fd.append("file", file); fd.append("title", "Programme Image"); fd.append("category", "Programme"); try { const res = await fetch("/api/documents", { method: "POST", body: fd }); if (!res.ok) throw new Error("Upload failed"); const data = await res.json(); setImage("/api/documents?id=" + data._id); notify("Image uploaded successfully!"); } catch (err) { alert("Upload failed: " + err.message); } }} /></label><span className="text-[10px] text-stone-400">JPG, PNG, WebP</span></div></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Saving..." : "Save Programme"}</Button></div></motion.form></motion.div>}</AnimatePresence></>;
 
@@ -1916,7 +1983,7 @@ function AdminCollection({ page, notify }: { page: Page; notify: (message: strin
   return null;
 }
 
-function renderAdminPage(page: Page, navigate: Navigate, notify: (message: string) => void) {
+function renderAdminPage(page: Page, navigate: Navigate, notify: (message: string) => void, selectedProgrammeId: string | null, setSelectedProgrammeId: (id: string | null) => void) {
   switch (page) {
     case "admin-dashboard": return <AdminDashboard navigate={navigate} />;
     case "admin-results": return <AdminResults navigate={navigate} notify={notify} />;
@@ -1928,7 +1995,8 @@ function renderAdminPage(page: Page, navigate: Navigate, notify: (message: strin
     case "admin-downloads": return <AdminDownloads notify={notify} />;
     case "admin-settings": return <AdminSettings notify={notify} />;
     case "admin-add-result": return <AdminAddResult navigate={navigate} notify={notify} />;
-    default: return <AdminCollection page={page} notify={notify} />;
+    case "admin-programme-dashboard": return <AdminProgrammeDashboard programmeId={selectedProgrammeId} navigate={navigate} notify={notify} />;
+    default: return <AdminCollection page={page} notify={notify} navigate={navigate} setSelectedProgrammeId={setSelectedProgrammeId} />;
   }
 }
 
@@ -1939,7 +2007,7 @@ function StudentLoginPage({ navigate }: { navigate: Navigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (enrollment.trim().length < 4) {
       setError("Please enter a valid Enrollment Number.");
@@ -1953,11 +2021,29 @@ function StudentLoginPage({ navigate }: { navigate: Navigate }) {
     setError("");
     setLoading(true);
     
-    // Simulate API call for login
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/students");
+      if (res.ok) {
+        const students = await res.json();
+        const matched = students.find((s: any) => 
+          s.enrollmentNumber.toLowerCase() === enrollment.trim().toLowerCase() && 
+          (s.dob && s.dob.substring(0, 10) === dob)
+        );
+
+        if (matched) {
+          localStorage.setItem("studentSession", JSON.stringify(matched));
+          navigate("student-zone");
+        } else {
+          setError("Invalid Enrollment Number or Date of Birth. Please try again.");
+        }
+      } else {
+        setError("Error connecting to server. Please try again later.");
+      }
+    } catch(err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
-      navigate("student-zone");
-    }, 800);
+    }
   };
 
   return (
@@ -2039,7 +2125,7 @@ function renderPublicPage(page: Page, navigate: Navigate, notify: (message: stri
 }
 
 const validPages: Page[] = [
-  "home", "about", "recognition", "programmes", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result", "system-result-view", "student-login",
+  "home", "about", "recognition", "programmes", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result", "admin-programme-dashboard", "system-result-view", "student-login",
 ];
 
 function pageFromHash(): Page {
@@ -2425,6 +2511,240 @@ function StudentSystemShell({ page, navigate, notify }: { page: Page; navigate: 
   );
 }
 
+function StudentOnlineExamView({ student, notify }: { student: any; notify: (msg: string) => void }) {
+  const [exams, setExams] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeExam, setActiveExam] = useState<any>(null);
+  const [examSession, setExamSession] = useState<any>(null);
+  const [timerRemaining, setTimerRemaining] = useState(0);
+  const [joined, setJoined] = useState(false);
+  const [answers, setAnswers] = useState<{ mcqs: Record<number, number>, theory: Record<number, string> }>({ mcqs: {}, theory: {} });
+
+  const fetchExams = async () => {
+    try {
+      const res = await fetch("/api/exams");
+      if (res.ok) {
+        setExams(await res.json());
+      }
+    } catch(e){} finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExams();
+  }, []);
+
+  const handleJoin = async (exam: any) => {
+    try {
+      const res = await fetch("/api/student-exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "join",
+          studentEnrollment: student.enrollmentNumber,
+          examId: exam._id
+        })
+      });
+      if (res.ok) {
+        const doc = await res.json();
+        setExamSession(doc);
+        setActiveExam(exam);
+        setJoined(true);
+        setAnswers(doc.answers || { mcqs: {}, theory: {} });
+        
+        if (exam.examState === 'portal_open') {
+          const expires = new Date(exam.portalOpenTime).getTime() + (exam.joiningWindow * 60 * 1000);
+          setTimerRemaining(Math.max(0, Math.round((expires - Date.now()) / 1000)));
+        } else if (exam.examState === 'running') {
+          const expires = new Date(exam.startTime).getTime() + (exam.duration * 60 * 1000);
+          setTimerRemaining(Math.max(0, Math.round((expires - Date.now()) / 1000)));
+        }
+      }
+    } catch(e){}
+  };
+
+  useEffect(() => {
+    if (!joined || !activeExam || activeExam.examState !== 'running' || examSession?.leftExam) return;
+    
+    let warningCount = 0;
+    const handleBlur = async () => {
+      warningCount++;
+      if (warningCount >= 2) {
+        notify("LOCKOUT ALERT: You left the exam screen. Exam auto-submitted!");
+        await fetch("/api/student-exams", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "lockout",
+            studentEnrollment: student.enrollmentNumber,
+            examId: activeExam._id
+          })
+        });
+        setJoined(false);
+        setActiveExam(null);
+        fetchExams();
+      } else {
+        alert("WARNING: Changing tabs or losing focus is strictly prohibited. Doing it again will submit and lock your exam.");
+      }
+    };
+    
+    window.addEventListener("blur", handleBlur);
+    return () => window.removeEventListener("blur", handleBlur);
+  }, [joined, activeExam, examSession]);
+
+  useEffect(() => {
+    if (!joined || timerRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setTimerRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [joined, timerRemaining]);
+
+  const handleTimeOut = async () => {
+    if (activeExam.examState === 'portal_open') {
+      notify("Joining window ended! Releasing exam paper.");
+      fetchExams();
+    } else if (activeExam.examState === 'running') {
+      notify("Exam duration completed! Saving answers.");
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/student-exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submit",
+          studentEnrollment: student.enrollmentNumber,
+          examId: activeExam._id,
+          answers
+        })
+      });
+      if (res.ok) {
+        notify("Paper submitted successfully!");
+        setJoined(false);
+        setActiveExam(null);
+        fetchExams();
+      }
+    } catch(e){}
+  };
+
+  if (loading) return <div className="p-8 text-stone-500">Loading exams...</div>;
+
+  return (
+    <div className="bg-white border rounded-xl shadow-sm p-6 space-y-6">
+      {!joined ? (
+        <>
+          <div className="border-b pb-3">
+            <h2 className="font-bold text-stone-850">Online Exams Workspace</h2>
+            <p className="text-xs text-stone-400">Join ongoing and scheduled examinations live.</p>
+          </div>
+          <div className="divide-y divide-stone-100">
+            {exams.filter(e => e.examState !== 'inactive').length === 0 ? (
+              <div className="p-8 text-center text-stone-500 text-sm">No live exam conduction room active right now.</div>
+            ) : (
+              exams.filter(e => e.examState !== 'inactive').map((exam, idx) => (
+                <div key={idx} className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-bold text-sm text-[#a1283c]">{exam.title}</h3>
+                    <p className="text-xs text-stone-500 mt-1">Programme: {exam.programme} | State: {exam.examState}</p>
+                  </div>
+                  <Button onClick={() => handleJoin(exam)}>Join Examination Room</Button>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between bg-stone-900 text-white p-4 rounded-lg">
+            <div>
+              <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">Active Session</span>
+              <h2 className="font-bold mt-1 text-sm">{activeExam.title}</h2>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] uppercase text-white/50 block">Time Remaining</span>
+              <span className="font-mono font-bold text-lg text-[#e8c476]">
+                {Math.floor(timerRemaining / 60)}m {timerRemaining % 60}s
+              </span>
+            </div>
+          </div>
+
+          {activeExam.examState === 'portal_open' && (
+            <div className="p-12 text-center bg-stone-50 border rounded-lg space-y-4">
+              <Clock3 className="h-10 w-10 text-stone-400 mx-auto animate-pulse" />
+              <h3 className="font-bold text-stone-850">Seated in Waiting Hall</h3>
+              <p className="text-xs text-stone-500 max-w-sm mx-auto">Please do not refresh or change tabs. The exam paper will automatically appear once the controller starts the examination.</p>
+            </div>
+          )}
+
+          {activeExam.examState === 'running' && (
+            <div className="space-y-8 font-sans">
+              {activeExam.paper?.mcqs?.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="font-bold text-sm border-b pb-2 text-stone-800 uppercase tracking-wider font-sans">Multiple Choice Questions</h3>
+                  {activeExam.paper.mcqs.map((q, idx) => (
+                    <div key={idx} className="border p-4 rounded-lg bg-stone-50 space-y-3 font-sans">
+                      <div className="font-semibold text-sm text-stone-850 font-sans">{idx + 1}. {q.question}</div>
+                      <div className="grid sm:grid-cols-2 gap-3 font-sans">
+                        {q.options.map((opt, oIdx) => (
+                          <label key={oIdx} className="flex items-center gap-2 text-xs bg-white border p-3 rounded-lg cursor-pointer hover:border-[#a1283c] transition font-sans">
+                            <input 
+                              type="radio" 
+                              name={`q_${idx}`} 
+                              checked={answers.mcqs[idx] === oIdx} 
+                              onChange={() => setAnswers({ ...answers, mcqs: { ...answers.mcqs, [idx]: oIdx } })}
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeExam.paper?.theory?.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="font-bold text-sm border-b pb-2 text-stone-800 uppercase tracking-wider">Subjective Questions</h3>
+                  {activeExam.paper.theory.map((tq, idx) => (
+                    <div key={idx} className="border p-4 rounded-lg bg-stone-50 space-y-3 font-sans">
+                      <div className="font-semibold text-sm text-stone-850 font-sans">{idx + 1}. {tq.question} ({tq.marks} Marks)</div>
+                      <textarea 
+                        rows={6}
+                        placeholder="Write your answer statement here..."
+                        className="w-full bg-white border rounded-lg p-3 text-xs outline-none focus:border-[#a1283c] leading-5 font-sans"
+                        value={answers.theory[idx] || ""}
+                        onChange={e => setAnswers({ ...answers, theory: { ...answers.theory, [idx]: e.target.value } })}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4 border-t">
+                <Button onClick={handleSubmit}>Submit Examination Paper</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: Navigate; notify: (message: string) => void }) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("My Dashboard");
@@ -2494,6 +2814,7 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
     { label: "Academic Profile", icon: User },
     { label: "Examination Schedule", icon: CalendarDays },
     { label: "My Results", icon: FileCheck2 },
+    { label: "Online Exams", icon: SlidersHorizontal },
     { label: "Study Material", icon: BookOpen },
     { label: "Downloads & Forms", icon: Download },
     { label: "Help & Support", icon: LifeBuoy },
@@ -2522,10 +2843,10 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
         <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-12 w-12 rounded-full bg-[#8d1c2f] flex items-center justify-center border-2 border-[#e8c476]">
-              <span className="font-bold text-lg text-[#e8c476]">{student.studentName.substring(0, 2).toUpperCase()}</span>
+              <span className="font-bold text-lg text-[#e8c476]">{(student.studentName || student.name || 'St').substring(0, 2).toUpperCase()}</span>
             </div>
             <div>
-              <div className="font-semibold text-sm line-clamp-1" title={student.studentName}>{student.studentName}</div>
+              <div className="font-semibold text-sm line-clamp-1" title={student.studentName || student.name}>{student.studentName || student.name}</div>
               <div className="text-xs text-[#e8c476]">Enr: {student.enrollmentNumber}</div>
             </div>
           </div>
@@ -2574,7 +2895,7 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
           <div className="flex items-center gap-4 text-xs">
             <div className="hidden sm:block text-right">
               <span className="text-stone-400 block font-medium">Session ID</span>
-              <span className="font-semibold text-stone-700">{student.id.substring(0, 8)}...</span>
+              <span className="font-semibold text-stone-700">{(student._id || student.id || 'N/A').substring(0, 8)}...</span>
             </div>
           </div>
         </header>
@@ -2586,7 +2907,7 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
                 <div className="bg-[#4a131c] rounded-xl shadow-sm p-6 text-white relative overflow-hidden">
                   <div className="relative z-10 space-y-2">
                     <span className="bg-[#e8c476] text-[#4a131c] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">Official Student Portal</span>
-                    <h2 className="text-xl md:text-2xl font-bold">Welcome back, {student.studentName}!</h2>
+                    <h2 className="text-xl md:text-2xl font-bold">Welcome back, {(student.studentName || student.name || 'Student')}!</h2>
                     <p className="text-white/80 text-sm max-w-lg">Access study materials, download syllabi, view exam dates, and check your declared marksheet directly.</p>
                   </div>
                   <div className="absolute right-0 bottom-0 opacity-10 translate-y-6 translate-x-6">
@@ -2709,29 +3030,46 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
                       <table className="w-full text-left border-collapse border border-stone-300">
                         <thead>
                           <tr className="bg-[#440d16] text-white">
-                            <th className="p-3 border border-stone-300 font-bold w-1/2">Subject</th>
-                            <th className="p-3 border border-stone-300 font-bold text-center w-1/6">Max Marks</th>
-                            <th className="p-3 border border-stone-300 font-bold text-center w-1/6">Min Marks</th>
-                            <th className="p-3 border border-stone-300 font-bold text-center w-1/6">Marks Obtained</th>
+                            <th className="p-3 border border-stone-300 font-bold text-left w-1/3">Subject</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Max</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Min</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Theory</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Practical</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Internal</th>
+<th className="p-3 border border-stone-300 font-bold text-center">Total</th>
                           </tr>
                         </thead>
                         <tbody>
                           {res.subjects && res.subjects.map((sub: any, sIdx: number) => (
                             <tr key={sIdx} className="odd:bg-stone-50">
                               <td className="p-3 border border-stone-300 font-semibold text-stone-800">{sub.name}</td>
-                              <td className="p-3 border border-stone-300 text-center text-stone-600">{sub.max}</td>
-                              <td className="p-3 border border-stone-300 text-center text-stone-600">{sub.min}</td>
-                              <td className="p-3 border border-stone-300 text-center font-bold text-stone-900">{sub.total}</td>
+<td className="p-3 border border-stone-300 text-center text-stone-600">{sub.max}</td>
+<td className="p-3 border border-stone-300 text-center text-stone-600">{sub.min}</td>
+<td className="p-3 border border-stone-300 text-center text-stone-600">{sub.th || "-"}</td>
+<td className="p-3 border border-stone-300 text-center text-stone-600">{sub.pr || "-"}</td>
+<td className="p-3 border border-stone-300 text-center text-stone-600">{sub.ia || "-"}</td>
+<td className="p-3 border border-stone-300 text-center font-bold text-stone-900">{sub.total}</td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot>
                           <tr className="bg-[#faebee] border border-stone-300">
-                            <td className="p-3 border border-stone-300 font-bold text-[#8d1c2f] uppercase text-right pr-6" colSpan={3}>Grand Total</td>
+                            <td className="p-3 border border-stone-300 font-bold text-[#8d1c2f] uppercase text-right pr-6" colSpan={6}>Grand Total</td>
                             <td className="p-3 border border-stone-300 font-bold text-[#8d1c2f] text-center text-xl">{res.grandTotal}</td>
                           </tr>
+                          
+                          <tr className="border border-stone-300 bg-stone-50">
+                            <td className="p-3 border border-stone-300 font-bold text-right pr-6 text-stone-600 uppercase" colSpan={6}>Percentage</td>
+                            <td className="p-3 border border-stone-300 font-bold text-center text-lg">{res.percentage}%</td>
+                          </tr>
+                          <tr className="border border-stone-300 bg-stone-50">
+                            <td className="p-3 border border-stone-300 font-bold text-right pr-6 text-stone-600 uppercase" colSpan={6}>Grade</td>
+                            <td className="p-3 border border-stone-300 font-bold text-center text-lg text-[#8d1c2f]">
+                              {res.percentage >= 90 ? 'A+' : res.percentage >= 80 ? 'A' : res.percentage >= 70 ? 'B+' : res.percentage >= 60 ? 'B' : res.percentage >= 50 ? 'C' : res.percentage >= 33 ? 'D' : 'E'}
+                            </td>
+                          </tr>
                           <tr className="border border-stone-300">
-                            <td className="p-3 border border-stone-300 font-bold text-right pr-6 text-stone-600 uppercase" colSpan={3}>Result Status</td>
+                            <td className="p-3 border border-stone-300 font-bold text-right pr-6 text-stone-600 uppercase" colSpan={6}>Result Status</td>
                             <td className={`p-3 border border-stone-300 font-extrabold text-center text-lg uppercase tracking-wider ${res.resultStatus === 'PASS' ? 'text-green-700' : 'text-red-700'}`}>
                               {res.resultStatus}
                             </td>
@@ -2748,9 +3086,9 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
                       </div>
                       
                       <div className="text-center">
-                        <div className="h-16 w-48 border-b-2 border-stone-400 mb-2 flex items-end justify-center pb-2">
-                          {/* Placeholder for Signature Image */}
-                          <span className="italic text-stone-300 text-sm">Valid Authorized Signature</span>
+                        <div className="h-20 w-56 border-b-2 border-stone-400 mb-2 flex flex-col items-center justify-end pb-2">
+                          <span className="italic text-[#8d1c2f] font-semibold text-sm leading-tight">Digitally Signed & Verified</span>
+                          <span className="text-[10px] text-stone-400 mt-0.5">Valid System Generated Document</span>
                         </div>
                         <div className="font-bold text-[#440d16] uppercase text-sm">Controller of Examinations</div>
                         <div className="text-xs text-stone-500 font-medium">Thar Board of School & Technical Education</div>
@@ -2871,7 +3209,11 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
             </div>
           )}
 
-          {activeTab === "Help & Support" && (
+          {activeTab === "Online Exams" && (
+          <StudentOnlineExamView student={student} notify={notify} />
+        )}
+
+        {activeTab === "Help & Support" && (
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-stone-200 bg-stone-50">
@@ -2923,8 +3265,1246 @@ function StudentPortalShell({ page, navigate, notify }: { page: Page; navigate: 
     </div>
   );
 }
+function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeId: string | null; navigate: Navigate; notify: (msg: string) => void }) {
+  const [programme, setProgramme] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [exams, setExams] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [docs, setDocs] = useState<any[]>([]);
+  const [activeSubTab, setActiveSubTab] = useState<"Overview" | "Subjects" | "Columns" | "Materials" | "Students" | "Exams">("Overview");
+
+  // Presets and dynamic configuration
+  const [presetSubjects, setPresetSubjects] = useState<any[]>([]);
+  const [customColumns, setCustomColumns] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+
+  // Exam and Paper creation
+  const [showExamModal, setShowExamModal] = useState(false);
+  const [examTitle, setExamTitle] = useState("");
+  const [examYear, setExamYear] = useState("2026");
+  const [regStart, setRegStart] = useState("");
+  const [examStart, setExamStart] = useState("");
+  const [resultDate, setResultDate] = useState("");
+
+  const [editingExam, setEditingExam] = useState<any>(null);
+  const [showPaperBuilder, setShowPaperBuilder] = useState(false);
+  const [mcqs, setMcqs] = useState<any[]>([]);
+  const [theoryQuestions, setTheoryQuestions] = useState<any[]>([]);
+
+  // Exam Conduction room
+  const [conductionExam, setConductionExam] = useState<any>(null);
+  const [conductionDuration, setConductionDuration] = useState(120);
+  const [conductionWindow, setConductionWindow] = useState(5);
+  const [joinedStudents, setJoinedStudents] = useState<any[]>([]);
+
+  // Result grading
+  const [gradingExam, setGradingExam] = useState<any>(null);
+  const [studentExams, setStudentExams] = useState<any[]>([]);
+  const [activeGradingExam, setActiveGradingExam] = useState<any>(null);
+  const [gradingMarks, setGradingMarks] = useState<Record<number, number>>({});
+
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [docTitle, setDocTitle] = useState("");
+  const [docFile, setDocFile] = useState<File | null>(null);
+
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [studentEnroll, setStudentEnroll] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [studentFather, setStudentFather] = useState("");
+  const [studentDob, setStudentDob] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const fetchData = async () => {
+    if (!programmeId) return;
+    setLoading(true);
+    try {
+      const progRes = await fetch(`/api/programmes?id=${programmeId}`);
+      if (!progRes.ok) throw new Error("Programme not found");
+      const progData = await progRes.json();
+      setProgramme(progData);
+      setPresetSubjects(progData.subjects || []);
+      setCustomColumns(progData.marksheetColumns || []);
+      setMaterials(progData.materials || []);
+
+      const progTitle = progData.title;
+      const examsRes = await fetch(`/api/exams?programme=${encodeURIComponent(progTitle)}`);
+      if (examsRes.ok) setExams(await examsRes.json());
+
+      const studentsRes = await fetch(`/api/students?programme=${encodeURIComponent(progTitle)}`);
+      if (studentsRes.ok) setStudents(await studentsRes.json());
+
+      const resultsRes = await fetch(`/api/results?programme=${encodeURIComponent(progTitle)}`);
+      if (resultsRes.ok) {
+        const r = await resultsRes.json();
+        setResults(r.results || []);
+      }
+
+      const docsRes = await fetch(`/api/documents?programme=${encodeURIComponent(progTitle)}`);
+      if (docsRes.ok) setDocs(await docsRes.json());
+    } catch (e: any) {
+      notify("Error loading programme details: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [programmeId]);
+
+  const handleSaveSubjects = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/programmes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: programme._id, subjects: presetSubjects })
+      });
+      if (res.ok) {
+        notify("Preset subjects updated successfully!");
+        fetchData();
+      }
+    } catch (e) {
+      alert("Failed to save subjects");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddPresetSubject = () => {
+    setPresetSubjects([...presetSubjects, { name: "", max: 100, min: 33, hasTh: true, hasPr: false, hasIa: false }]);
+  };
+
+  const handleUpdatePresetSubject = (idx: number, key: string, val: any) => {
+    const updated = [...presetSubjects];
+    updated[idx] = { ...updated[idx], [key]: val };
+    setPresetSubjects(updated);
+  };
+
+  const handleRemovePresetSubject = (idx: number) => {
+    setPresetSubjects(presetSubjects.filter((_, i) => i !== idx));
+  };
+
+  const handleSaveColumns = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/programmes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: programme._id, marksheetColumns: customColumns })
+      });
+      if (res.ok) {
+        notify("Custom columns config saved!");
+        fetchData();
+      }
+    } catch(e) {
+      alert("Error saving columns config");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddColumn = () => {
+    setCustomColumns([...customColumns, { key: "custom_" + Date.now(), label: "", isCustom: true }]);
+  };
+
+  const handleUpdateColumn = (idx: number, key: string, val: any) => {
+    const updated = [...customColumns];
+    updated[idx] = { ...updated[idx], [key]: val };
+    setCustomColumns(updated);
+  };
+
+  const handleRemoveColumn = (idx: number) => {
+    setCustomColumns(customColumns.filter((_, i) => i !== idx));
+  };
+
+  const handleAddMaterial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docFile || !programme) return;
+    setSaving(true);
+    const fd = new FormData();
+    fd.append("file", docFile);
+    fd.append("title", docTitle);
+    fd.append("category", "Study Material");
+    fd.append("programme", programme.title);
+    try {
+      const uploadRes = await fetch("/api/documents", { method: "POST", body: fd });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const uploadData = await uploadRes.json();
+      
+      const fileUrl = "/api/documents?id=" + uploadData._id;
+      const updatedMaterials = [...materials, { title: docTitle, fileUrl }];
+      
+      const res = await fetch("/api/programmes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: programme._id, materials: updatedMaterials })
+      });
+      if (res.ok) {
+        notify("Study Material attached successfully!");
+        setShowDocModal(false);
+        setDocTitle("");
+        setDocFile(null);
+        fetchData();
+      }
+    } catch (e) {
+      alert("Failed to attach study notes");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreateExam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: examTitle,
+          programme: programme.title,
+          examYear,
+          registrationStartDate: regStart,
+          examStartDate: examStart,
+          resultDate
+        })
+      });
+      if (res.ok) {
+        notify("Examination created successfully!");
+        setShowExamModal(false);
+        setExamTitle("");
+        setRegStart("");
+        setExamStart("");
+        setResultDate("");
+        fetchData();
+      }
+    } catch(err) {
+      alert("Error adding exam schedule");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  
+  const [enrollMode, setEnrollMode] = useState<"new"|"existing">("new");
+  const [allSystemStudents, setAllSystemStudents] = useState<any[]>([]);
+  const [selectedExistingId, setSelectedExistingId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    if (showStudentModal) {
+      fetch("/api/students").then(r => r.json()).then(data => {
+        if(Array.isArray(data)) setAllSystemStudents(data);
+      }).catch(console.error);
+    }
+  }, [showStudentModal]);
+
+  const handleEnrollStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (enrollMode === "existing") {
+        if (!selectedExistingId) {
+          alert("Please select a student");
+          setSaving(false);
+          return;
+        }
+        const student = allSystemStudents.find(s => s._id === selectedExistingId);
+        if (!student) {
+          setSaving(false);
+          return;
+        }
+        const updatedProgrammes = [...new Set([...(student.programmes || []), programme.title])];
+        
+        const res = await fetch("/api/students", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: student._id,
+            name: student.name,
+            fatherName: student.fatherName,
+            dob: student.dob,
+            programmes: updatedProgrammes
+          })
+        });
+        if (res.ok) {
+           notify("Existing Student enrolled to program successfully!");
+           setShowStudentModal(false);
+           fetchData();
+        } else {
+           const text = await res.json();
+           alert(text.error || "Enrollment failed");
+        }
+      } else {
+        const res = await fetch("/api/students", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            enrollmentNumber: studentEnroll,
+            name: studentName,
+            fatherName: studentFather,
+            dob: studentDob,
+            programmes: [programme.title]
+          })
+        });
+        if (res.ok) {
+          notify("New Student enrolled to program successfully!");
+          setShowStudentModal(false);
+          setStudentEnroll("");
+          setStudentName("");
+          setStudentFather("");
+          setStudentDob("");
+          fetchData();
+        } else {
+          const text = await res.json();
+          alert(text.error || "Enrollment failed");
+        }
+      }
+    } catch(err) {
+      alert("Enrolling failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleOpenPaperBuilder = (exam: any) => {
+    setEditingExam(exam);
+    setMcqs(exam.paper?.mcqs || []);
+    setTheoryQuestions(exam.paper?.theory || []);
+    setShowPaperBuilder(true);
+  };
+
+  const handleSavePaper = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/exams", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingExam._id,
+          paper: { mcqs, theory: theoryQuestions }
+        })
+      });
+      if (res.ok) {
+        notify("Paper sheet saved successfully!");
+        setShowPaperBuilder(false);
+        fetchData();
+      }
+    } catch (e) {
+      alert("Failed to save paper");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleOpenConduction = (exam: any) => {
+    setConductionExam(exam);
+    setConductionDuration(exam.duration || 120);
+    setConductionWindow(exam.joiningWindow || 5);
+    pollJoinedStudents(exam._id);
+  };
+
+  const pollJoinedStudents = async (examId: string) => {
+    try {
+      const res = await fetch(`/api/student-exams?examId=${examId}`);
+      if (res.ok) {
+        setJoinedStudents(await res.json());
+      }
+    } catch(e){}
+  };
+
+  const handleStartConduction = async (state: string) => {
+    try {
+      const updates: any = {
+        id: conductionExam._id,
+        examState: state,
+        status: state === 'ended' ? 'Completed' : 'Ongoing'
+      };
+      if (state === 'portal_open') {
+        updates.portalOpenTime = new Date();
+        updates.joiningWindow = conductionWindow;
+        updates.duration = conductionDuration;
+      }
+      if (state === 'running') {
+        updates.startTime = new Date();
+      }
+      const res = await fetch("/api/exams", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates)
+      });
+      if (res.ok) {
+        notify("State updated to " + state);
+        const data = await res.json();
+        setConductionExam(data.exam);
+        fetchData();
+      }
+    } catch(e) {}
+  };
+
+  const handleOpenGrading = async (exam: any) => {
+    setGradingExam(exam);
+    try {
+      const res = await fetch(`/api/student-exams?examId=${exam._id}`);
+      if (res.ok) {
+        setStudentExams(await res.json());
+      }
+    } catch(e){}
+  };
+
+  const handleGradeStudent = (se: any) => {
+    setActiveGradingExam(se);
+    setGradingMarks(se.theoryMarks || {});
+  };
+
+  const handleSaveGrades = async () => {
+    try {
+      const res = await fetch("/api/student-exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "grade",
+          studentEnrollment: activeGradingExam.studentEnrollment,
+          examId: gradingExam._id,
+          theoryMarks: gradingMarks,
+          isChecked: true
+        })
+      });
+      if (res.ok) {
+        notify("Marks assigned and saved!");
+        setActiveGradingExam(null);
+        handleOpenGrading(gradingExam);
+      }
+    } catch (e){}
+  };
+
+  const handleDeclareResults = async () => {
+    const checkedExams = studentExams.filter(se => se.isChecked);
+    if (checkedExams.length === 0) {
+      alert("No graded result papers to declare!");
+      return;
+    }
+    setSaving(true);
+    try {
+      const resultsToCreate = checkedExams.map(se => {
+        const studentInfo = students.find(s => s.enrollmentNumber === se.studentEnrollment);
+        const mcqScore = se.mcqMarks || 0;
+        let theoryScore = 0;
+        Object.values(se.theoryMarks || {}).forEach((v: any) => { theoryScore += Number(v) || 0; });
+        const totalObtained = mcqScore + theoryScore;
+        
+        let maxMarks = 0;
+        if (gradingExam.paper) {
+          (gradingExam.paper.mcqs || []).forEach((m: any) => maxMarks += m.marks);
+          (gradingExam.paper.theory || []).forEach((t: any) => maxMarks += t.marks);
+        }
+        
+        const percentage = Number(((totalObtained / (maxMarks || 100)) * 100).toFixed(2));
+        const status = percentage >= 33 ? 'PASS' : 'FAIL';
+
+        return {
+          enrollmentNumber: se.studentEnrollment,
+          rollNumber: se.studentEnrollment,
+          studentName: studentInfo?.name || "Student " + se.studentEnrollment,
+          fatherName: studentInfo?.fatherName || "N/A",
+          dob: studentInfo?.dob || new Date(),
+          programme: programme.title,
+          examination: gradingExam.title,
+          examYear: gradingExam.examYear,
+          subjects: [{
+            sNo: "1",
+            name: gradingExam.title,
+            max: maxMarks,
+            min: Math.round(maxMarks * 0.33),
+            th: totalObtained,
+            pr: 0,
+            ia: 0,
+            total: totalObtained,
+            grade: percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'D'
+          }],
+          grandTotal: totalObtained,
+          percentage,
+          resultStatus: status
+        };
+      });
+
+      const res = await fetch("/api/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(resultsToCreate)
+      });
+      if (res.ok) {
+        await fetch("/api/exams", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: gradingExam._id, status: "Result Declared" })
+        });
+        notify("Exam results declared live!");
+        setGradingExam(null);
+        fetchData();
+      }
+    } catch(e) {
+      alert("Declaration failed: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteExam = async (id: string) => {
+    if (!confirm("Delete this exam schedule?")) return;
+    try {
+      const res = await fetch(`/api/exams?id=${id}`, { method: "DELETE" });
+      if (res.ok) { notify("Exam deleted."); fetchData(); }
+    } catch (e) { alert("Failed to delete"); }
+  };
+
+  const handleDeleteDoc = async (id: string) => {
+    if (!confirm("Delete this document?")) return;
+    try {
+      const res = await fetch(`/api/documents?id=${id}`, { method: "DELETE" });
+      if (res.ok) { notify("Document deleted."); fetchData(); }
+    } catch (e) { alert("Failed to delete"); }
+  };
+
+  if (!programmeId) return <div className="p-5 text-stone-500">No programme selected.</div>;
+  if (loading) return <div className="p-8 text-stone-500 text-sm">Loading programme specific dashboard...</div>;
+  if (!programme) return <div className="p-5 text-red-500">Error: Programme not found.</div>;
+
+  return <>
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3">
+        <Button variant="secondary" onClick={() => navigate("admin-programmes")} className="min-h-9 px-3 py-1.5"><ArrowLeft className="h-4 w-4" /> Back</Button>
+        <div>
+          <h1 className="text-xl font-bold text-stone-900">{programme.title} Dashboard</h1>
+          <p className="text-xs text-stone-500">Eligibility: {programme.eligibility} | Duration: {programme.duration}</p>
+        </div>
+      </div>
+      
+      <div className="flex gap-1 bg-stone-100 p-1 rounded-lg border">
+        {["Overview", "Subjects", "Columns", "Materials", "Students", "Exams"].map((tab: any) => (
+          <button 
+            key={tab} 
+            onClick={() => {
+              setActiveSubTab(tab);
+              setConductionExam(null);
+              setGradingExam(null);
+              setActiveGradingExam(null);
+            }} 
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${activeSubTab === tab ? "bg-white text-[#a1283c] shadow-sm" : "text-stone-600 hover:text-[#a1283c]"}`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {conductionExam && (
+      <div className="bg-stone-900 text-white rounded-xl shadow-xl p-6 mb-8 border-t-4 border-[#a1283c] space-y-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded">Exam Conduction Control Room</span>
+            <h2 className="text-lg font-bold mt-1">{conductionExam.title}</h2>
+          </div>
+          <Button variant="secondary" className="border-white/20 text-white hover:bg-white/10 min-h-8 text-xs py-1" onClick={() => setConductionExam(null)}>Close Control Room</Button>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            <h3 className="font-bold text-sm text-[#e8c476]">Conduction Options</h3>
+            <div>
+              <label className="text-[10px] uppercase text-white/50 block mb-1">Conduction Duration (Mins)</label>
+              <input 
+                disabled={conductionExam.examState !== 'inactive'}
+                type="number" 
+                className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none" 
+                value={conductionDuration} 
+                onChange={e => setConductionDuration(Number(e.target.value))} 
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase text-white/50 block mb-1">Registration Window (Mins)</label>
+              <input 
+                disabled={conductionExam.examState !== 'inactive'}
+                type="number" 
+                className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none" 
+                value={conductionWindow} 
+                onChange={e => setConductionWindow(Number(e.target.value))} 
+              />
+            </div>
+            <div className="pt-2">
+              {conductionExam.examState === 'inactive' && (
+                <Button className="w-full bg-lime-600 hover:bg-lime-700" onClick={() => handleStartConduction('portal_open')}>
+                  Open Exam Portal
+                </Button>
+              )}
+              {conductionExam.examState === 'portal_open' && (
+                <Button className="w-full bg-[#a1283c] hover:bg-[#831e2f]" onClick={() => handleStartConduction('running')}>
+                  Release Exam Paper (Release to Joined)
+                </Button>
+              )}
+              {conductionExam.examState === 'running' && (
+                <Button className="w-full bg-red-650 hover:bg-red-750" onClick={() => handleStartConduction('ended')}>
+                  End Examination Conduction
+                </Button>
+              )}
+              {conductionExam.examState === 'ended' && (
+                <div className="text-center font-bold text-red-400 text-xs py-2 bg-red-950/20 border border-red-900/30 rounded">Conduction Cycle Finished</div>
+              )}
+            </div>
+          </div>
+          
+          <div className="md:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-[#e8c476]">Active Candidate Hall ({joinedStudents.length})</h3>
+              <Button variant="ghost" className="text-[#e8c476] min-h-8 text-xs py-1" onClick={() => pollJoinedStudents(conductionExam._id)}>Refresh Live List</Button>
+            </div>
+            <div className="bg-stone-800 border border-white/10 rounded-lg max-h-60 overflow-y-auto divide-y divide-white/5">
+              {joinedStudents.length === 0 ? (
+                <div className="p-6 text-center text-xs text-white/40">Waiting for candidates to join room...</div>
+              ) : (
+                joinedStudents.map((se, sIdx) => {
+                  const sInfo = students.find(s => s.enrollmentNumber === se.studentEnrollment);
+                  return (
+                    <div key={sIdx} className="p-3 flex items-center justify-between text-xs hover:bg-stone-750">
+                      <div>
+                        <div className="font-bold text-white">{sInfo?.name || "Student " + se.studentEnrollment}</div>
+                        <div className="text-[10px] text-white/50">Enrollment: {se.studentEnrollment}</div>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        {se.leftExam && <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded text-[9px] uppercase font-bold">LOCKED OUT (Window Focus Lost)</span>}
+                        {se.isSubmitted ? (
+                          <span className="bg-lime-500/20 text-lime-400 border border-lime-500/30 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Paper Submitted</span>
+                        ) : (
+                          <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Online</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {gradingExam && !activeGradingExam && (
+      <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 mb-8 space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h2 className="font-bold text-stone-800 text-base">Grading Dashboard: {gradingExam.title}</h2>
+            <p className="text-xs text-stone-400">View student response sheets, correct theory, and push results live.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="min-h-9 text-xs" onClick={() => setGradingExam(null)}>Close Suite</Button>
+            <Button className="min-h-9 text-xs bg-lime-600 hover:bg-lime-700" onClick={handleDeclareResults}>Declare Declared Results</Button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs min-w-[700px]">
+            <thead className="bg-stone-50 text-stone-500 uppercase font-semibold">
+              <tr>
+                <th className="px-4 py-2">Enrollment</th>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2 text-center">MCQ Marks</th>
+                <th className="px-4 py-2 text-center">Theory Score</th>
+                <th className="px-4 py-2 text-center">Submission</th>
+                <th className="px-4 py-2 text-center">Grading status</th>
+                <th className="px-4 py-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {studentExams.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-stone-400">No student responses found.</td></tr>
+              ) : (
+                studentExams.map((se, sIdx) => {
+                  const sInfo = students.find(s => s.enrollmentNumber === se.studentEnrollment);
+                  let theoryScore = 0;
+                  Object.values(se.theoryMarks || {}).forEach((v: any) => { theoryScore += Number(v) || 0; });
+                  return (
+                    <tr key={sIdx} className="border-t border-stone-100 hover:bg-stone-50 transition">
+                      <td className="px-4 py-3 font-semibold text-[#8d1c2f]">{se.studentEnrollment}</td>
+                      <td className="px-4 py-3 font-bold text-stone-850">{sInfo?.name || "Student"}</td>
+                      <td className="px-4 py-3 text-center text-stone-600 font-semibold">{se.mcqMarks}</td>
+                      <td className="px-4 py-3 text-center text-stone-600 font-semibold">{theoryScore}</td>
+                      <td className="px-4 py-3 text-center">
+                        <StatusBadge tone={se.isSubmitted ? 'green' : 'amber'}>
+                          {se.isSubmitted ? 'Submitted' : 'Draft'}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${se.isChecked ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'}`}>
+                          {se.isChecked ? 'Checked' : 'Awaiting'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button variant="secondary" className="min-h-8 py-0 px-2 text-xs" onClick={() => handleGradeStudent(se)}>
+                          Check answers
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+
+    {activeGradingExam && (
+      <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 mb-8 space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h2 className="font-bold text-stone-850">Assess Subjective Answers</h2>
+            <p className="text-xs text-stone-400">Enrollment: {activeGradingExam.studentEnrollment}</p>
+          </div>
+          <Button variant="secondary" className="min-h-9 text-xs" onClick={() => setActiveGradingExam(null)}>Back</Button>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="bg-stone-50 border p-4 rounded-lg">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-stone-500 mb-2">Auto Graded Section</h3>
+            <div className="text-sm font-semibold text-stone-800">MCQ Score: <span className="text-lime-700 font-bold text-base">{activeGradingExam.mcqMarks} Marks</span></div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-bold text-sm text-stone-850">Subjective Questions Assessment</h3>
+            {(gradingExam.paper?.theory || []).map((tq: any, idx: number) => {
+              const answerText = activeGradingExam.answers?.theory?.[idx] || "(Not Answered)";
+              return (
+                <div key={idx} className="border p-4 rounded-lg space-y-3 bg-white shadow-sm font-sans">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <strong className="text-xs text-stone-400 block uppercase">Question #{idx + 1} ({tq.marks} Marks)</strong>
+                      <div className="text-sm font-semibold text-stone-800 mt-1">{tq.question}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-semibold text-stone-500">Marks Scored:</label>
+                      <input 
+                        type="number"
+                        max={tq.marks}
+                        step="0.5"
+                        className="w-16 h-8 text-center border rounded p-1 text-xs outline-none"
+                        value={gradingMarks[idx] ?? ""}
+                        onChange={e => setGradingMarks({ ...gradingMarks, [idx]: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-stone-50 p-3 rounded text-xs text-stone-700 border-l-4 border-stone-300">
+                    <strong className="block text-[10px] text-stone-400 uppercase mb-1">Student Answer:</strong>
+                    <div className="whitespace-pre-wrap leading-5">{answerText}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button onClick={handleSaveGrades}>Submit Grades & Save Result</Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {activeSubTab === "Overview" && (
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="bg-white border border-stone-200 p-5 md:p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
+            <h2 className="font-bold text-stone-850 text-sm uppercase tracking-wider flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#a1283c]" /> Examinations</h2>
+            <Button onClick={() => setShowExamModal(true)} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Create Exam</Button>
+          </div>
+          <div className="divide-y divide-stone-100 max-h-60 overflow-y-auto pr-1">
+            {exams.length === 0 ? <p className="text-xs text-stone-400 py-3">No examinations scheduled yet.</p> : exams.map(exam => (
+              <div key={exam._id} className="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <b className="text-stone-850 font-semibold">{exam.title} ({exam.examYear})</b>
+                  <div className="text-[10px] text-stone-400 mt-0.5">State: {exam.examState || 'inactive'} | Status: {exam.status}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleOpenPaperBuilder(exam)} className="text-[#a1283c] hover:underline font-semibold text-[11px]">Edit Paper</button>
+                  <button onClick={() => handleOpenConduction(exam)} className="text-lime-700 hover:underline font-semibold text-[11px]">Conduction</button>
+                  <button onClick={() => handleOpenGrading(exam)} className="text-blue-700 hover:underline font-semibold text-[11px]">Grading</button>
+                  <button onClick={() => handleDeleteExam(exam._id)} className="text-red-500 hover:text-red-700 font-semibold ml-2"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-white border border-stone-200 p-5 md:p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
+            <h2 className="font-bold text-stone-850 text-sm uppercase tracking-wider flex items-center gap-2"><FileText className="h-4 w-4 text-[#a1283c]" /> Study Materials & Forms</h2>
+            <Button onClick={() => setShowDocModal(true)} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Upload File</Button>
+          </div>
+          <div className="divide-y divide-stone-100 max-h-60 overflow-y-auto pr-1">
+            {docs.length === 0 ? <p className="text-xs text-stone-400 py-3">No documents uploaded.</p> : docs.map(doc => (
+              <div key={doc._id} className="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <b className="text-stone-850 font-semibold">{doc.title}</b>
+                  <span className="ml-2 rounded bg-stone-100 px-1.5 py-0.5 text-[9px] text-stone-500 font-semibold">{doc.category}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a href={`/api/documents?id=${doc._id}`} download className="text-stone-500 hover:text-[#a1283c]"><Download className="h-3.5 w-3.5" /></a>
+                  <button onClick={() => handleDeleteDoc(doc._id)} className="text-red-500 hover:text-red-700 font-semibold"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    )}
+
+    {activeSubTab === "Subjects" && (
+      <div className="bg-white border border-stone-200 p-6 rounded-lg shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h2 className="font-bold text-stone-850">Configure subjects Presets</h2>
+            <p className="text-xs text-stone-400">Configure subjects automatically populated during result declarations.</p>
+          </div>
+          <Button onClick={handleAddPresetSubject} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Add Subject</Button>
+        </div>
+
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {presetSubjects.length === 0 ? (
+            <div className="p-6 text-center text-xs text-stone-400">No preset subjects defined. Add some.</div>
+          ) : (
+            presetSubjects.map((sub, idx) => (
+              <div key={idx} className="flex flex-wrap items-center gap-4 border p-3 bg-stone-50 rounded font-sans">
+                <div className="w-6 text-xs text-stone-400 font-bold font-sans">#{idx + 1}</div>
+                <div className="flex-1 min-w-[200px]">
+                  <input 
+                    placeholder="Subject name" 
+                    className="w-full text-xs border rounded p-1.5 outline-none bg-white font-sans" 
+                    value={sub.name} 
+                    onChange={e => handleUpdatePresetSubject(idx, "name", e.target.value)} 
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase text-stone-400 block mb-0.5 font-sans">Max Marks</label>
+                  <input 
+                    type="number"
+                    placeholder="100" 
+                    className="w-16 text-xs border rounded p-1.5 text-center outline-none bg-white font-sans" 
+                    value={sub.max} 
+                    onChange={e => handleUpdatePresetSubject(idx, "max", Number(e.target.value))} 
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase text-stone-400 block mb-0.5 font-sans">Min Marks</label>
+                  <input 
+                    type="number"
+                    placeholder="33" 
+                    className="w-16 text-xs border rounded p-1.5 text-center outline-none bg-white font-sans" 
+                    value={sub.min} 
+                    onChange={e => handleUpdatePresetSubject(idx, "min", Number(e.target.value))} 
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-xs text-stone-600 font-medium font-sans">
+                    <input type="checkbox" checked={sub.hasTh} onChange={e => handleUpdatePresetSubject(idx, "hasTh", e.target.checked)} /> Theory
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-stone-600 font-medium font-sans">
+                    <input type="checkbox" checked={sub.hasPr} onChange={e => handleUpdatePresetSubject(idx, "hasPr", e.target.checked)} /> Practical
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-stone-600 font-medium font-sans">
+                    <input type="checkbox" checked={sub.hasIa} onChange={e => handleUpdatePresetSubject(idx, "hasIa", e.target.checked)} /> Internal
+                  </label>
+                </div>
+                <button onClick={() => handleRemovePresetSubject(idx)} className="text-red-500 hover:text-red-700 ml-auto"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="pt-4 border-t flex justify-end">
+          <Button onClick={handleSaveSubjects}>Save Subjects Configuration</Button>
+        </div>
+      </div>
+    )}
+
+    {activeSubTab === "Columns" && (
+      <div className="bg-white border border-stone-200 p-6 rounded-lg shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h2 className="font-bold text-stone-850">Custom Marksheet Columns</h2>
+            <p className="text-xs text-stone-400">Configure columns shown on statement of marks.</p>
+          </div>
+          <Button onClick={handleAddColumn} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Add Column</Button>
+        </div>
+
+        <div className="space-y-3 font-sans">
+          {customColumns.length === 0 ? (
+            <div className="p-6 text-center text-xs text-stone-400">No custom columns. Showing default columns (Theory, Practical, IA).</div>
+          ) : (
+            customColumns.map((col, idx) => (
+              <div key={idx} className="flex items-center gap-4 border p-3 bg-stone-50 rounded">
+                <div className="text-xs text-stone-400 font-bold font-sans">#{idx + 1}</div>
+                <div className="flex-1 font-sans">
+                  <label className="text-[10px] uppercase text-stone-400 block mb-0.5 font-sans">Column Key</label>
+                  <input 
+                    placeholder="e.g. th" 
+                    className="w-full text-xs border rounded p-1.5 outline-none bg-white font-sans" 
+                    value={col.key} 
+                    onChange={e => handleUpdateColumn(idx, "key", e.target.value)} 
+                  />
+                </div>
+                <div className="flex-1 font-sans">
+                  <label className="text-[10px] uppercase text-stone-400 block mb-0.5 font-sans">Column Header Label</label>
+                  <input 
+                    placeholder="e.g. Theory Marks" 
+                    className="w-full text-xs border rounded p-1.5 outline-none bg-white font-sans" 
+                    value={col.label} 
+                    onChange={e => handleUpdateColumn(idx, "label", e.target.value)} 
+                  />
+                </div>
+                <button onClick={() => handleRemoveColumn(idx)} className="text-red-500 hover:text-red-700 mt-4"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="pt-4 border-t flex justify-end font-sans">
+          <Button onClick={handleSaveColumns}>Save Columns Configuration</Button>
+        </div>
+      </div>
+    )}
+
+    {activeSubTab === "Materials" && (
+      <div className="bg-white border border-stone-200 p-6 rounded-lg shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h2 className="font-bold text-stone-850">Attached Materials & PDF Library</h2>
+            <p className="text-xs text-stone-400">Attach and distribute PDFs or guidelines under this Programme.</p>
+          </div>
+          <Button onClick={() => setShowDocModal(true)} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Upload Material</Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {materials.length === 0 ? (
+            <div className="p-6 text-center text-xs text-stone-400 col-span-2">No study materials attached.</div>
+          ) : (
+            materials.map((m, idx) => (
+              <div key={idx} className="border p-4 bg-stone-50 rounded-lg flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-[#a1283c]">{m.title}</h3>
+                  <div className="text-xs text-stone-400 mt-1">Status: Attached</div>
+                </div>
+                <div className="flex gap-2">
+                  <a href={m.fileUrl} download className="h-8 w-8 rounded-full border bg-white flex items-center justify-center hover:bg-stone-50"><Download className="h-4 w-4" /></a>
+                  <button 
+                    onClick={async () => {
+                      if (!confirm("Are you sure?")) return;
+                      const updated = materials.filter((_, i) => i !== idx);
+                      await fetch("/api/programmes", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: programme._id, materials: updated })
+                      });
+                      notify("Material removed");
+                      fetchData();
+                    }} 
+                    className="h-8 w-8 rounded-full border bg-white text-red-500 flex items-center justify-center hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    )}
+
+    {activeSubTab === "Students" && (
+      <section className="bg-white border border-stone-200 p-5 md:p-6 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
+          <h2 className="font-bold text-stone-800 text-sm uppercase tracking-wider flex items-center gap-2"><Users className="h-4 w-4 text-[#a1283c]" /> Enrolled Students ({students.length})</h2>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowStudentModal(true)} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Enroll Student</Button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs min-w-[600px]">
+            <thead className="bg-stone-50 text-stone-400 uppercase font-semibold">
+              <tr>
+                <th className="px-4 py-2">Enrollment</th>
+                <th className="px-4 py-2">Student Name</th>
+                <th className="px-4 py-2">Father's Name</th>
+                <th className="px-4 py-2">Date of Birth</th>
+                <th className="px-4 py-2 text-right">Result Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.length === 0 ? <tr><td colSpan={5} className="p-4 text-center text-stone-400">No students enrolled in this programme.</td></tr> : students.map(s => {
+                const sResult = results.find(r => r.enrollmentNumber === s.enrollmentNumber);
+                return (
+                  <tr key={s._id} className="border-t border-stone-100 hover:bg-stone-50 transition">
+                    <td className="px-4 py-3 font-semibold text-[#8d1c2f]">{s.enrollmentNumber}</td>
+                    <td className="px-4 py-3 font-bold text-stone-850">{s.name}</td>
+                    <td className="px-4 py-3 text-stone-500">{s.fatherName}</td>
+                    <td className="px-4 py-3 text-stone-400">{new Date(s.dob).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-right">
+                      {sResult ? (
+                        <StatusBadge tone={sResult.resultStatus === 'PASS' ? 'green' : 'red'}>{sResult.resultStatus}</StatusBadge>
+                      ) : (
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded ring-1 ring-amber-200">No Result</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    {activeSubTab === "Exams" && !conductionExam && !gradingExam && (
+      <section className="bg-white border border-stone-200 p-5 md:p-6 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
+          <h2 className="font-bold text-stone-850 text-sm uppercase tracking-wider flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#a1283c]" /> Examinations</h2>
+          <Button onClick={() => setShowExamModal(true)} className="min-h-8 px-3 py-1 text-xs"><Plus className="h-3 w-3" /> Create Exam</Button>
+        </div>
+        <div className="divide-y divide-stone-100 max-h-60 overflow-y-auto pr-1">
+          {exams.length === 0 ? <p className="text-xs text-stone-400 py-3">No examinations scheduled yet.</p> : exams.map(exam => (
+            <div key={exam._id} className="py-2.5 flex items-center justify-between text-xs">
+              <div>
+                <b className="text-stone-850 font-semibold">{exam.title} ({exam.examYear})</b>
+                <div className="text-[10px] text-stone-400 mt-0.5">State: {exam.examState || 'inactive'} | Status: {exam.status}</div>
+              </div>
+              <div className="flex gap-2 font-sans">
+                <button onClick={() => handleOpenPaperBuilder(exam)} className="text-[#a1283c] hover:underline font-semibold text-[11px] font-sans">Edit Paper</button>
+                <button onClick={() => handleOpenConduction(exam)} className="text-lime-700 hover:underline font-semibold text-[11px] font-sans">Conduction</button>
+                <button onClick={() => handleOpenGrading(exam)} className="text-blue-700 hover:underline font-semibold text-[11px] font-sans">Grading</button>
+                <button onClick={() => handleDeleteExam(exam._id)} className="text-red-500 hover:text-red-700 font-semibold ml-2 font-sans"><Trash2 className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* Paper Builder Modal Workspace */}
+    <AnimatePresence>
+      {showPaperBuilder && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5 overflow-y-auto font-sans">
+          <motion.div initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-2xl space-y-6 my-8 font-sans">
+            <div className="flex items-center justify-between border-b pb-3 font-sans">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider font-sans">Create Exam Paper: {editingExam?.title}</h3>
+                <p className="text-xs text-stone-400 font-sans">Add MCQs and subjective questions to this examination paper.</p>
+              </div>
+              <button onClick={() => setShowPaperBuilder(false)}><X className="h-5 w-5 text-stone-400" /></button>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto pr-2 font-sans">
+              {/* MCQ builder */}
+              <div className="space-y-4 font-sans">
+                <div className="flex items-center justify-between border-b pb-2 font-sans">
+                  <h4 className="font-bold text-xs uppercase text-stone-500 font-sans">1. Multiple Choice Questions ({mcqs.length})</h4>
+                  <Button variant="secondary" className="min-h-8 py-0.5 text-xs font-sans" onClick={() => setMcqs([...mcqs, { question: "", options: ["", "", "", ""], correctOption: 0, marks: 2 }])}>+ Add MCQ</Button>
+                </div>
+                
+                <div className="space-y-3 font-sans">
+                  {mcqs.map((q, idx) => (
+                    <div key={idx} className="border p-3 bg-stone-50 rounded space-y-2 font-sans">
+                      <div className="flex items-center justify-between font-sans">
+                        <span className="text-xs font-bold text-stone-400 font-sans">Q#{idx + 1}</span>
+                        <input 
+                          type="number" 
+                          step="0.5" 
+                          placeholder="Marks" 
+                          className="w-12 text-center text-xs border rounded p-0.5 outline-none font-sans" 
+                          value={q.marks} 
+                          onChange={e => {
+                            const updated = [...mcqs];
+                            updated[idx].marks = Number(e.target.value);
+                            setMcqs(updated);
+                          }}
+                        />
+                        <button onClick={() => setMcqs(mcqs.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 text-xs font-bold font-sans">Remove</button>
+                      </div>
+                      <input 
+                        placeholder="Enter MCQ Question Statement" 
+                        className="w-full border rounded text-xs p-1.5 outline-none font-sans" 
+                        value={q.question}
+                        onChange={e => {
+                          const updated = [...mcqs];
+                          updated[idx].question = e.target.value;
+                          setMcqs(updated);
+                        }}
+                      />
+                      <div className="grid grid-cols-2 gap-2 font-sans">
+                        {q.options.map((opt: string, oIdx: number) => (
+                          <div key={oIdx} className="flex items-center gap-1 font-sans">
+                            <input 
+                              type="radio" 
+                              name={`mcq_${idx}`} 
+                              checked={q.correctOption === oIdx} 
+                              onChange={() => {
+                                const updated = [...mcqs];
+                                updated[idx].correctOption = oIdx;
+                                setMcqs(updated);
+                              }}
+                            />
+                            <input 
+                              placeholder={`Option ${oIdx + 1}`} 
+                              className="w-full text-[11px] border rounded p-1 outline-none font-sans" 
+                              value={opt}
+                              onChange={e => {
+                                const updated = [...mcqs];
+                                updated[idx].options[oIdx] = e.target.value;
+                                setMcqs(updated);
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Theory builder */}
+              <div className="space-y-4 font-sans">
+                <div className="flex items-center justify-between border-b pb-2 font-sans">
+                  <h4 className="font-bold text-xs uppercase text-stone-500 font-sans">2. Subjective / Theory Questions ({theoryQuestions.length})</h4>
+                  <Button variant="secondary" className="min-h-8 py-0.5 text-xs font-sans" onClick={() => setTheoryQuestions([...theoryQuestions, { question: "", marks: 5 }])}>+ Add Theory</Button>
+                </div>
+                
+                <div className="space-y-3 font-sans">
+                  {theoryQuestions.map((q, idx) => (
+                    <div key={idx} className="border p-3 bg-stone-50 rounded space-y-2 font-sans">
+                      <div className="flex items-center justify-between font-sans">
+                        <span className="text-xs font-bold text-stone-400 font-sans">Q#{idx + 1}</span>
+                        <input 
+                          type="number" 
+                          placeholder="Marks" 
+                          className="w-16 text-center text-xs border rounded p-0.5 outline-none font-sans" 
+                          value={q.marks} 
+                          onChange={e => {
+                            const updated = [...theoryQuestions];
+                            updated[idx].marks = Number(e.target.value);
+                            setTheoryQuestions(updated);
+                          }}
+                        />
+                        <button onClick={() => setTheoryQuestions(theoryQuestions.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 text-xs font-bold font-sans">Remove</button>
+                      </div>
+                      <textarea 
+                        rows={2} 
+                        placeholder="Enter subjective/theory question text" 
+                        className="w-full border rounded text-xs p-1.5 outline-none font-sans" 
+                        value={q.question}
+                        onChange={e => {
+                          const updated = [...theoryQuestions];
+                          updated[idx].question = e.target.value;
+                          setTheoryQuestions(updated);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 border-t pt-4 font-sans">
+              <Button type="button" variant="secondary" onClick={() => setShowPaperBuilder(false)}>Cancel</Button>
+              <Button disabled={saving} onClick={handleSavePaper}>{saving ? "Saving..." : "Save Paper"}</Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Examinations Creation Modal */}
+    <AnimatePresence>{showExamModal && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.form initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} onSubmit={handleCreateExam} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Create Examination ({programme.title})</h3><button type="button" onClick={() => setShowExamModal(false)}><X className="h-5 w-5 text-stone-400" /></button></div><div className="space-y-4"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Exam Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={examTitle} onChange={e => setExamTitle(e.target.value)} placeholder="e.g. December Term-End Examination" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Exam Year *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={examYear} onChange={e => setExamYear(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Registration Start Date *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={regStart} onChange={e => setRegStart(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Examination Start Date *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={examStart} onChange={e => setExamStart(e.target.value)} /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Result Declaration Date *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={resultDate} onChange={e => setResultDate(e.target.value)} /></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setShowExamModal(false)}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Creating..." : "Create Exam"}</Button></div></motion.form></motion.div>}</AnimatePresence>
+
+    {/* Document Upload Modal */}
+    <AnimatePresence>{showDocModal && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.form initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} onSubmit={handleAddMaterial} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Upload Programme File</h3><button type="button" onClick={() => setShowDocModal(false)}><X className="h-5 w-5 text-stone-400" /></button></div><div className="space-y-4"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">File Title *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={docTitle} onChange={e => setDocTitle(e.target.value)} placeholder="e.g. Syllabus 2026 Batch" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Choose File *</label><input required type="file" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" onChange={e => setDocFile(e.target.files?.[0] || null)} /></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setShowDocModal(false)}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Uploading..." : "Upload File"}</Button></div></motion.form></motion.div>}</AnimatePresence>
+
+    {/* Student Enrollment Modal */}
+    <AnimatePresence>
+      {showStudentModal && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5 overflow-y-auto">
+          <motion.form initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} onSubmit={handleEnrollStudent} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl my-8">
+            <div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4">
+              <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Enroll Student to Programme</h3>
+              <button type="button" onClick={() => setShowStudentModal(false)}><X className="h-5 w-5 text-stone-400" /></button>
+            </div>
+            
+            <div className="flex gap-4 mb-4">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <input type="radio" checked={enrollMode === 'new'} onChange={() => setEnrollMode('new')} className="accent-[#8d1c2f]" />
+                New Student
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <input type="radio" checked={enrollMode === 'existing'} onChange={() => setEnrollMode('existing')} className="accent-[#8d1c2f]" />
+                Existing Student
+              </label>
+            </div>
+
+            {enrollMode === 'new' ? (
+              <div className="space-y-4">
+                <div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Enrollment Number *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={studentEnroll} onChange={e => setStudentEnroll(e.target.value)} placeholder="e.g. ENR2026101" /></div>
+                <div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Student Full Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={studentName} onChange={e => setStudentName(e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Father's Name *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={studentFather} onChange={e => setStudentFather(e.target.value)} /></div>
+                <div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Date of Birth *</label><input required type="date" className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={studentDob} onChange={e => setStudentDob(e.target.value)} /></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="relative">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Select Existing Student *</label>
+                  <input 
+                    type="text" 
+                    placeholder="Search by name or enrollment number..." 
+                    className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]"
+                    value={searchQuery}
+                    onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); if(e.target.value === '') setSelectedExistingId(''); }}
+                    onFocus={() => setShowDropdown(true)}
+                  />
+                  {showDropdown && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-white border border-stone-200 rounded shadow-xl max-h-56 overflow-y-auto z-[150]">
+                      {allSystemStudents.filter(s => (s.name + ' ' + s.enrollmentNumber).toLowerCase().includes(searchQuery.toLowerCase())).length > 0 ? 
+                        allSystemStudents.filter(s => (s.name + ' ' + s.enrollmentNumber).toLowerCase().includes(searchQuery.toLowerCase())).map(s => (
+                          <div 
+                            key={s._id} 
+                            onClick={() => { setSelectedExistingId(s._id); setSearchQuery(s.name + ' (' + s.enrollmentNumber + ')'); setShowDropdown(false); }}
+                            className={`p-2.5 text-xs cursor-pointer hover:bg-stone-50 border-b border-stone-100 last:border-0 ${selectedExistingId === s._id ? 'bg-stone-100 font-bold' : ''}`}
+                          >
+                            <span className="font-semibold text-stone-900">{s.name}</span> <span className="text-stone-500">({s.enrollmentNumber})</span>
+                          </div>
+                        ))
+                       : (
+                        <div className="p-3 text-xs text-stone-500 italic text-center">No matching students found</div>
+                       )}
+                    </div>
+                  )}
+                  {/* Backdrop to close dropdown */}
+                  {showDropdown && <div className="fixed inset-0 z-[140]" onClick={() => setShowDropdown(false)}></div>}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4">
+              <Button type="button" variant="secondary" onClick={() => setShowStudentModal(false)}>Cancel</Button>
+              <Button disabled={saving} type="submit">{saving ? "Enrolling..." : "Enroll Student"}</Button>
+            </div>
+          </motion.form>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </>;
+}
+
+
 export default function App() {
-  const [page, setPage] = useState<Page>(pageFromHash);
+  const [page, setPage] = useState<Page>("home");
+  const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
   const [cmsData, setCmsData] = React.useState({});
@@ -2943,6 +4523,7 @@ export default function App() {
   useEffect(() => { fetchCms(); }, [fetchCms]);
 
   useEffect(() => {
+    setPage(pageFromHash());
     const syncPage = () => setPage(pageFromHash());
     window.addEventListener("popstate", syncPage);
     return () => window.removeEventListener("popstate", syncPage);
@@ -2968,7 +4549,7 @@ export default function App() {
   const isSystem = page.startsWith("system-");
   const isPortal = page === "student-zone";
   return <CmsContext.Provider value={{ cmsData, fetchCms }}>
-    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? <AdminShell page={page} navigate={navigate} notify={notify} /> : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
+    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? <AdminShell page={page} navigate={navigate} notify={notify} selectedProgrammeId={selectedProgrammeId} setSelectedProgrammeId={setSelectedProgrammeId} /> : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
     <AnimatePresence>{toast && <motion.div role="status" initial={{ opacity: 0, y: 16, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 8, x: "-50%" }} className="fixed bottom-6 left-1/2 z-[120] flex min-w-[280px] items-center gap-3 rounded-lg bg-[#4a131c] px-4 py-3 text-sm font-medium text-white shadow-2xl"><CheckCircle2 className="h-5 w-5 text-lime-400" />{String(toast)}</motion.div>}</AnimatePresence>
   </CmsContext.Provider>;
 }

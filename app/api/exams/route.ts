@@ -7,10 +7,15 @@ export async function GET(request: Request) {
     await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
+    const programme = searchParams.get('programme') || '';
 
-    const query = search 
-      ? { title: { $regex: search, $options: 'i' } }
-      : {};
+    const query: any = {};
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
+    if (programme) {
+      query.programme = programme;
+    }
 
     const exams = await Exam.find(query).sort({ examStartDate: -1 });
     return NextResponse.json(exams);
@@ -45,6 +50,22 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    await connectToDatabase();
+    const data = await request.json();
+    const { id, ...updates } = data;
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    const exam = await Exam.findByIdAndUpdate(id, updates, { new: true });
+    if (!exam) return NextResponse.json({ error: 'Examination not found' }, { status: 404 });
+
+    return NextResponse.json({ message: 'Examination updated successfully', exam });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     await connectToDatabase();
@@ -57,3 +78,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

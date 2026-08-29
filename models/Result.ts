@@ -17,6 +17,7 @@ export interface IResult extends Document {
     min: number;
     th: number;
     pr: number;
+    ia: number;
     total: number;
     grade: string;
   }>;
@@ -42,6 +43,7 @@ const ResultSchema: Schema = new Schema({
     min: Number,
     th: Number,
     pr: Number,
+    ia: Number,
     total: Number,
     grade: String
   }],

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/db';
 import Result from '../../../models/Result';
+import Student from '../../../models/Student';
 import * as xlsx from 'xlsx';
 
 // Smart column mapper - auto-detects column names from any Excel format
@@ -43,24 +44,64 @@ function mapColumns(row: Record<string, any>) {
   const subjectColumns = keys.filter(k => !['enrollment','enrollmentno','enrollmentnumber','roll','rollno','name','studentname','father','fathername','dob','dateofbirth','programme','program','course','exam','examination','year','examyear','total','grandtotal','percentage','percent','status','result'].some(s => k.toLowerCase().replace(/[_\s-]/g, '').includes(s.replace(/[_\s-]/g, ''))));
 
   const subjects: any[] = [];
-  // Group subject columns in pairs/quads (Subj1_TH, Subj1_PR etc.)
+  // Group subject columns in pairs/quads/etc. (Subj1_TH, Subj1_PR, Subj1_IA etc.)
   const subjectMap: Record<string, any> = {};
   subjectColumns.forEach(col => {
     const val = row[col];
-    if (typeof val === 'number' || !isNaN(Number(val))) {
-      const baseName = col.replace(/_?(TH|PR|Max|Min|Total|Grade)$/i, '').trim();
-      if (!subjectMap[baseName]) subjectMap[baseName] = { name: baseName };
-      const suffix = (col.match(/_(TH|PR|Max|Min|Total|Grade)$/i) || [])[1]?.toUpperCase();
-      if (suffix === 'TH') subjectMap[baseName].th = Number(val);
-      else if (suffix === 'PR') subjectMap[baseName].pr = Number(val);
-      else if (suffix === 'MAX') subjectMap[baseName].max = Number(val);
-      else if (suffix === 'MIN') subjectMap[baseName].min = Number(val);
-      else if (suffix === 'TOTAL') subjectMap[baseName].total = Number(val);
-      else if (suffix === 'GRADE') subjectMap[baseName].grade = String(val);
-      else subjectMap[baseName].th = Number(val); // default to theory marks
+    const baseName = col.replace(/_?(TH|PR|IA|Max|Min|Total|Grade)$/i, '').trim();
+    if (!subjectMap[baseName]) subjectMap[baseName] = { name: baseName };
+    const suffix = (col.match(/_(TH|PR|IA|Max|Min|Total|Grade)$/i) || [])[1]?.toUpperCase();
+    if (suffix === 'TH') subjectMap[baseName].th = isNaN(Number(val)) ? val : Number(val);
+    else if (suffix === 'PR') subjectMap[baseName].pr = isNaN(Number(val)) ? val : Number(val);
+    else if (suffix === 'IA') subjectMap[baseName].ia = isNaN(Number(val)) ? val : Number(val);
+    else if (suffix === 'MAX') subjectMap[baseName].max = Number(val) || 100;
+    else if (suffix === 'MIN') subjectMap[baseName].min = Number(val) || 33;
+    else if (suffix === 'TOTAL') subjectMap[baseName].total = isNaN(Number(val)) ? val : Number(val);
+    else if (suffix === 'GRADE') subjectMap[baseName].grade = String(val);
+    else {
+      // If it doesn't match a suffix but is a subject column, default to theory marks
+      subjectMap[baseName].th = isNaN(Number(val)) ? val : Number(val);
     }
   });
-  Object.values(subjectMap).forEach((s, i) => subjects.push({ sNo: String(i + 1), name: s.name, max: s.max || 100, min: s.min || 33, th: s.th || 0, pr: s.pr || 0, total: s.total || (s.th || 0) + (s.pr || 0), grade: s.grade || '' }));
+
+  Object.values(subjectMap).forEach((s: any, i) => {
+    // Skip ghost/empty subjects (blank columns from Excel)
+    const subName = (s.name || '').trim();
+    if (!subName || subName === '__EMPTY' || subName.startsWith('__EMPTY')) return;
+
+    const thVal = Number(s.th) || 0;
+    const prVal = Number(s.pr) || 0;
+    const iaVal = Number(s.ia) || 0;
+    const totalMarks = s.total !== undefined ? (Number(s.total) || 0) : (thVal + prVal + iaVal);
+    
+    // Skip subjects with zero marks across all fields
+    if (totalMarks === 0 && thVal === 0 && prVal === 0 && iaVal === 0) return;
+
+    const maxMarks = s.max || 100;
+    
+    // Auto calculate grade based on percentage
+    const pct = (totalMarks / maxMarks) * 100;
+    let autoGrade = 'F';
+    if (pct >= 90) autoGrade = 'A+';
+    else if (pct >= 80) autoGrade = 'A';
+    else if (pct >= 70) autoGrade = 'B+';
+    else if (pct >= 60) autoGrade = 'B';
+    else if (pct >= 50) autoGrade = 'C';
+    else if (pct > 33) autoGrade = 'D';
+    else if (pct === 33) autoGrade = 'E';
+
+    subjects.push({
+      sNo: String(subjects.length + 1),
+      name: subName,
+      max: maxMarks,
+      min: s.min || 33,
+      th: thVal,
+      pr: prVal,
+      ia: iaVal,
+      total: totalMarks,
+      grade: s.grade ? String(s.grade).trim() : autoGrade
+    });
+  });
 
   const calcPercent = total && percent === undefined ? Number(total) / (subjects.length * 100) * 100 : Number(percent || 0);
   const calcStatus = status ? String(status).toUpperCase().includes('PASS') ? 'PASS' : String(status).toUpperCase() : (calcPercent >= 33 ? 'PASS' : 'FAIL');
@@ -80,6 +121,39 @@ function mapColumns(row: Record<string, any>) {
     resultStatus: calcStatus,
   };
 }
+async function upsertStudentForResult(resultData: any) {
+  try {
+    const enrollment = resultData.enrollmentNumber.trim();
+    // Look up student by enrollment
+    const student = await Student.findOne({ enrollmentNumber: enrollment });
+    if (student) {
+      // If student exists, check if programme is in their programmes list
+      const currentProgrammes = student.programmes || [];
+      if (!currentProgrammes.includes(resultData.programme)) {
+        currentProgrammes.push(resultData.programme);
+        student.programmes = currentProgrammes;
+        await student.save();
+      }
+    } else {
+      // Create new student
+      const newStudent = new Student({
+        enrollmentNumber: enrollment,
+        name: resultData.studentName,
+        fatherName: resultData.fatherName || 'N/A',
+        dob: resultData.dob,
+        programmes: [resultData.programme],
+        email: '',
+        phone: '',
+        address: '',
+        passwordHash: 'defaultpass'
+      });
+      await newStudent.save();
+    }
+  } catch (err) {
+    console.error('Failed to upsert student for result:', err);
+  }
+}
+
 
 export async function GET(request: Request) {
   try {
@@ -93,7 +167,15 @@ export async function GET(request: Request) {
 
     // Admin: fetch all results
     if (!enrollmentNumber || !dobString) {
-      const query = search ? { $or: [{ studentName: { $regex: search, $options: 'i' } }, { enrollmentNumber: { $regex: search, $options: 'i' } }] } : {};
+      const programme = searchParams.get('programme') || '';
+      const query: any = {};
+      if (search) {
+        query.$or = [{ studentName: { $regex: search, $options: 'i' } }, { enrollmentNumber: { $regex: search, $options: 'i' } }];
+      }
+      if (programme) {
+        query.programme = programme;
+      }
+
       const [results, total] = await Promise.all([
         Result.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
         Result.countDocuments(query)
@@ -159,6 +241,7 @@ export async function POST(request: Request) {
             { ...resultData, resultDate: new Date() },
             { upsert: true, new: true }
           );
+          await upsertStudentForResult(resultData);
           imported++;
         } catch (e: any) {
           skipped++;
@@ -209,6 +292,7 @@ export async function POST(request: Request) {
               resultData,
               { upsert: true, new: true }
             );
+            await upsertStudentForResult(resultData);
             imported++;
           } catch (e: any) {
             skipped++;
@@ -253,6 +337,7 @@ export async function POST(request: Request) {
         resultData,
         { upsert: true, new: true }
       );
+      await upsertStudentForResult(resultData);
 
       return NextResponse.json({ message: 'Result saved successfully.', result }, { status: 201 });
     }

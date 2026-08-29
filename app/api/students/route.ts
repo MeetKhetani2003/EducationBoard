@@ -7,10 +7,15 @@ export async function GET(request: Request) {
     await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
+    const programme = searchParams.get('programme') || '';
     
-    const query = search 
-      ? { $or: [{ name: { $regex: search, $options: 'i' } }, { enrollmentNumber: { $regex: search, $options: 'i' } }] }
-      : {};
+    const query: any = {};
+    if (search) {
+      query.$or = [{ name: { $regex: search, $options: 'i' } }, { enrollmentNumber: { $regex: search, $options: 'i' } }];
+    }
+    if (programme) {
+      query.programmes = { $in: [programme] };
+    }
       
     const students = await Student.find(query).sort({ createdAt: -1 });
     return NextResponse.json(students);
