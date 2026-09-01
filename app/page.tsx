@@ -1,5 +1,5 @@
 "use client";
-import React, { FormEvent, useEffect, useState, useRef } from "react";
+import React, { FormEvent, useEffect, useState, useRef, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Accessibility, AlertCircle, ArrowDownToLine, ArrowLeft, ArrowRight, Award,
@@ -115,8 +115,8 @@ function StatusBadge({ children, tone = "green" }: { children: React.ReactNode; 
   return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ring-1 ring-inset ${tones[tone]}`}>{children}</span>;
 }
 
-function Field({ label, placeholder, type = "text", required = false, value, onChange }: { label: string; placeholder?: string; type?: string; required?: boolean; value?: string; onChange?: (value: string) => void }) {
-  return <label className="block text-sm font-semibold text-stone-700">{label}{required && <span className="text-red-600"> *</span>}<input type={type} placeholder={placeholder} required={required} value={value} onChange={onChange ? (e) => onChange(e.target.value) : undefined} className="mt-2 h-12 w-full rounded-lg border border-stone-300 bg-white px-3.5 text-sm font-normal text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-[#8d1c2f] focus:ring-3 focus:ring-stone-100" /></label>;
+function Field({ label, placeholder, type = "text", required = false, value, onChange, pattern }: { label: string; placeholder?: string; type?: string; required?: boolean; value?: string; onChange?: (value: string) => void; pattern?: string }) {
+  return <label className="block text-sm font-semibold text-stone-700">{label}{required && <span className="text-red-600"> *</span>}<input type={type} placeholder={placeholder} required={required} value={value} onChange={onChange ? (e) => onChange(e.target.value) : undefined} pattern={pattern} className="mt-2 h-12 w-full rounded-lg border border-stone-300 bg-white px-3.5 text-sm font-normal text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-[#8d1c2f] focus:ring-3 focus:ring-stone-100" /></label>;
 }
 
 function SelectField({ label, options, required = false }: { label: string; options: string[]; required?: boolean }) {
@@ -142,15 +142,26 @@ const navItems: { label: string; page: Page; children?: { label: string; page: P
 
 function PublicHeader({ navigate, active }: { navigate: Navigate; active: Page }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  return <><div className="bg-[#440d16] text-[11px] font-medium text-stone-100"><div className="mx-auto flex min-h-8 max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8"><div className="hidden items-center gap-2 sm:flex"><ShieldCheck className="h-3.5 w-3.5 text-[#ff9245]" /> Official Examination & Result Portal</div><div className="flex w-full items-center justify-end gap-4 sm:w-auto"><a href="tel:+918869844584" className="hidden hover:text-white md:inline">Helpline: +91 8869844584</a><button onClick={() => navigate("contact")} className="hover:text-white">Help</button><button className="inline-flex items-center gap-1 hover:text-white"><Accessibility className="h-3.5 w-3.5" /> Accessibility</button><button className="inline-flex items-center gap-1 hover:text-white"><Languages className="h-3.5 w-3.5" /> EN</button></div></div></div>
-    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href="mailto:help@tbste.edu" className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>help@tbste.edu</span></a><button onClick={() => navigate("student-login")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Staff login</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
+  const { cmsData } = useContext(CmsContext) as any;
+  const phone = cmsData["org.phone"] || "+91 8869844584";
+  const email = cmsData["org.email"] || "help@tbste.edu";
+  
+  return <><div className="bg-[#440d16] text-[11px] font-medium text-stone-100"><div className="mx-auto flex min-h-8 max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8"><div className="hidden items-center gap-2 sm:flex"><ShieldCheck className="h-3.5 w-3.5 text-[#ff9245]" /> Official Examination & Result Portal</div><div className="flex w-full items-center justify-end gap-4 sm:w-auto"><a href={`tel:${phone}`} className="hidden hover:text-white md:inline">Helpline: {phone}</a><button onClick={() => navigate("contact")} className="hover:text-white">Help</button><button className="inline-flex items-center gap-1 hover:text-white"><Accessibility className="h-3.5 w-3.5" /> Accessibility</button><button className="inline-flex items-center gap-1 hover:text-white"><Languages className="h-3.5 w-3.5" /> EN</button></div></div></div>
+    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>{email}</span></a><button onClick={() => navigate("student-login")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Staff login</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
     <nav className="sticky top-0 z-40 border-b border-stone-200 bg-white/96 shadow-[0_5px_18px_rgba(15,35,70,0.04)] backdrop-blur" aria-label="Main navigation"><div className="mx-auto hidden max-w-[1240px] items-center justify-between px-8 lg:flex"><div className="flex">{navItems.map((item) => <div className="group relative" key={item.label}><button onClick={() => navigate(item.page)} className={`flex h-12 items-center gap-1.5 border-b-2 px-3.5 text-[13px] font-semibold transition ${active === item.page ? "border-[#fb791c] text-[#8d1c2f]" : "border-transparent text-stone-700 hover:border-stone-200 hover:text-[#8d1c2f]"}`}>{item.label}{item.children && <ChevronDown className="h-3.5 w-3.5" />}</button>{item.children && <div className="invisible absolute left-0 top-[49px] z-50 w-60 transtone-y-2 border border-stone-200 bg-white p-2 opacity-0 shadow-xl shadow-stone-900/10 transition-all group-hover:visible group-hover:transtone-y-0 group-hover:opacity-100">{item.children.map((child) => <button key={child.label} onClick={() => navigate(child.page)} className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm text-stone-600 hover:bg-stone-50 hover:text-[#8d1c2f]">{child.label}<ChevronRight className="h-4 w-4" /></button>)}</div>}</div>)}</div><button onClick={() => navigate("results")} className="flex h-12 items-center gap-2 border-b-2 border-[#8d1c2f] px-4 text-[13px] font-bold text-[#8d1c2f]"><Search className="h-4 w-4" /> Check result</button></div>
       <AnimatePresence>{mobileOpen && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-stone-100 bg-white lg:hidden"><div className="max-h-[72vh] overflow-y-auto p-4">{navItems.map((item) => <button key={item.label} onClick={() => { navigate(item.page); setMobileOpen(false); }} className="flex w-full items-center justify-between border-b border-stone-100 px-2 py-3.5 text-left text-sm font-semibold text-stone-700">{item.label}<ChevronRight className="h-4 w-4" /></button>)}<Button onClick={() => { navigate("results"); setMobileOpen(false); }} className="mt-4 w-full">Check Your Result</Button></div></motion.div>}</AnimatePresence></nav></>;
 }
 
 function Footer({ navigate }: { navigate: Navigate }) {
+  const { cmsData } = useContext(CmsContext) as any;
   const link = (label: string, page: Page) => <button onClick={() => navigate(page)} className="block py-1.5 text-left text-sm text-stone-300 transition hover:transtone-x-0.5 hover:text-white">{label}</button>;
-  return <footer className="bg-[#3c0b13] text-white"><div className="mx-auto max-w-[1240px] px-5 py-14 md:px-8 md:py-16"><div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><Logo inverse /><div className="mt-5 max-w-sm text-xs leading-5 text-stone-300"><p className="font-semibold text-white">THAR BOARD OF SCHOOL & TECHNICAL EDUCATION</p><p className="mt-2">(GOVERNMENT RECOGNISED, ESTABLISHED UNDER INDIAN TRUST ACT, 1882  IV48/2013)</p><p>(REGISTERED WITH PLANNING COMMISSION, GOVT. OF INDIA)</p><p>ISO 9001:2008-CERTIFIED ORGANIZATION</p></div><div className="mt-5 flex items-center gap-2 text-xs text-stone-200"><ShieldCheck className="h-4 w-4 text-[#ff9245]" /> Designed for secure, accessible public services</div></div><div><h3 className="mb-3 text-sm font-semibold">Quick Links</h3>{link("About the Board", "about")}{link("Examination Results", "results")}{link("Examinations", "examinations")}{link("Programmes", "programmes")}</div><div><h3 className="mb-3 text-sm font-semibold">Student Services</h3>{link("Downloads", "downloads")}{link("Admit Card", "student-login")}{link("Result Verification", "verification")}{link("Student Zone", "student-login")}</div><div><h3 className="mb-3 text-sm font-semibold">Support</h3>{link("Contact Us", "contact")}<a className="block py-1.5 text-sm text-stone-300" href="mailto:help@tbste.edu">help@tbste.edu</a><a className="block py-1.5 text-sm text-stone-300" href="tel:+918869844584">+91 8869844584</a><span className="mt-3 block text-xs leading-5 text-stone-400">Mon-Fri, 9:30 AM-5:30 PM</span></div></div></div><div className="border-t border-white/10"><div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-5 py-5 text-xs text-stone-400 md:flex-row md:items-center md:justify-between md:px-8"><p>Copyright 2026 Thar Board of School and Technical Education. Demo concept only.</p><div className="flex gap-5"><button>Privacy Policy</button><button>Terms</button><button>Accessibility</button></div></div></div></footer>;
+  
+  const addrs = cmsData["contact.addresses"] || ["Centre of India District-Etawah, Uttar Pradesh, India"];
+  const email = cmsData["org.email"] || "help@tbste.edu";
+  const phone = cmsData["org.phone"] || "+91 8869844584";
+  const orgName = cmsData["org.name"] || "THAR BOARD OF SCHOOL & TECHNICAL EDUCATION";
+  
+  return <footer className="bg-[#3c0b13] text-white"><div className="mx-auto max-w-[1240px] px-5 py-14 md:px-8 md:py-16"><div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><Logo inverse /><div className="mt-5 max-w-sm text-xs leading-5 text-stone-300"><p className="font-semibold text-white uppercase">{orgName}</p><p className="mt-2">(GOVERNMENT RECOGNISED, ESTABLISHED UNDER INDIAN TRUST ACT, 1882  IV48/2013)</p><p>(REGISTERED WITH PLANNING COMMISSION, GOVT. OF INDIA)</p><p>ISO 9001:2008-CERTIFIED ORGANIZATION</p></div><div className="mt-5 flex items-center gap-2 text-xs text-stone-200"><ShieldCheck className="h-4 w-4 text-[#ff9245]" /> Designed for secure, accessible public services</div></div><div><h3 className="mb-3 text-sm font-semibold">Quick Links</h3>{link("About the Board", "about")}{link("Examination Results", "results")}{link("Examinations", "examinations")}{link("Programmes", "programmes")}</div><div><h3 className="mb-3 text-sm font-semibold">Student Services</h3>{link("Downloads", "downloads")}{link("Admit Card", "student-login")}{link("Result Verification", "verification")}{link("Student Zone", "student-login")}</div><div><h3 className="mb-3 text-sm font-semibold">Support</h3>{link("Contact Us", "contact")}<a className="block py-1.5 text-sm text-stone-300" href={`mailto:${email}`}>{email}</a><a className="block py-1.5 text-sm text-stone-300" href={`tel:${phone}`}>{phone}</a><span className="mt-3 block text-xs leading-5 text-stone-400">Mon-Fri, 9:30 AM-5:30 PM</span><div className="mt-4 flex flex-col gap-3 text-sm text-stone-300">{addrs.map((a: string, i: number) => <span key={i} className="flex gap-2 items-start"><MapPin className="h-4 w-4 mt-0.5 shrink-0" /> <span className="leading-5">{a}</span></span>)}</div></div></div></div><div className="border-t border-white/10"><div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-5 py-5 text-xs text-stone-400 md:flex-row md:items-center md:justify-between md:px-8"><p>Copyright 2026 {orgName}. All rights reserved.</p><div className="flex gap-5"><button>Privacy Policy</button><button>Terms</button><button>Accessibility</button></div></div></div></footer>;
 }
 
 function ResultSearch({ navigate, compact = false }: { navigate: Navigate; compact?: boolean }) {
@@ -161,7 +172,7 @@ function ResultSearch({ navigate, compact = false }: { navigate: Navigate; compa
 
 function RecognitionSection({ navigate }: { navigate: Navigate }) {
   const items = ["Recognition Authority", "Registration Authority", "Academic Quality Body", "Digital Services Authority"];
-  return <section className="bg-[#fbf4f5] py-10 md:py-16"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><SectionHeading eyebrow="Institutional Trust" title="Recognition & approvals" text="Organized access to illustrative recognition records and supporting documents. No official legal claims are made in this demo." action={<Button variant="secondary" onClick={() => navigate("recognition")}>View document archive</Button>} /><div className="grid border border-stone-200 bg-white md:grid-cols-2 lg:grid-cols-4">{items.map((name, index) => <button onClick={() => navigate("recognition")} key={name} className="group border-b border-stone-200 p-6 text-left last:border-b-0 md:border-r lg:border-b-0"><div className="grid h-12 w-12 place-items-center rounded-full border border-stone-100 bg-stone-50 text-[#8d1c2f]"><Award className="h-6 w-6" /></div><h3 className="mt-5 font-semibold text-[#4a131c]">{name}</h3><p className="mt-2 text-xs leading-5 text-stone-500">Illustrative registration record<br />Reference No. NAB/DEMO/0{index + 1}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#8d1c2f]">View document <ExternalLink className="h-3.5 w-3.5" /></span></button>)}</div></div></section>;
+  return <section className="bg-[#fbf4f5] py-10 md:py-16"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><SectionHeading eyebrow="Institutional Trust" title="Recognition & approvals" text="Organized access to official recognition records and supporting documents." action={<Button variant="secondary" onClick={() => navigate("recognition")}>View document archive</Button>} /><div className="grid border border-stone-200 bg-white md:grid-cols-2 lg:grid-cols-4">{items.map((name, index) => <button onClick={() => navigate("recognition")} key={name} className="group border-b border-stone-200 p-6 text-left last:border-b-0 md:border-r lg:border-b-0"><div className="grid h-12 w-12 place-items-center rounded-full border border-stone-100 bg-stone-50 text-[#8d1c2f]"><Award className="h-6 w-6" /></div><h3 className="mt-5 font-semibold text-[#4a131c]">{name}</h3><p className="mt-2 text-xs leading-5 text-stone-500">Official registration record<br />Reference No. NAB/REG/0{index + 1}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#8d1c2f]">View document <ExternalLink className="h-3.5 w-3.5" /></span></button>)}</div></div></section>;
 }
 
 function StudentServices({ navigate }: { navigate: Navigate }) {
@@ -451,7 +462,7 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
 function VerificationPage({ navigate }: { navigate: Navigate }) {
   const [verified, setVerified] = useState(false); const [loading, setLoading] = useState(false);
   function verify(event: FormEvent) { event.preventDefault(); setLoading(true); window.setTimeout(() => { setLoading(false); setVerified(true); }, 900); }
-  return <><PageHero title="Verify result or certificate" text="Enter the document details below to simulate secure verification of an academic record." label="Document Verification" navigate={navigate} /><main className="bg-[#fcf7f8] py-8 md:py-12"><div className="mx-auto max-w-[900px] px-5 md:px-8"><div className="mb-5 flex gap-3 bg-stone-50 p-4 text-xs leading-5 text-stone-800"><CircleHelp className="h-5 w-5 shrink-0" /><p>This is a UI demonstration only. It does not connect to a government or institutional verification database.</p></div><form onSubmit={verify} className="border border-stone-200 bg-white p-6 md:p-9"><div className="grid gap-5 md:grid-cols-2"><SelectField label="Document Type" required options={["Result", "Marksheet", "Certificate", "Migration Certificate"]} /><Field label="Roll Number" required placeholder="Enter enrollment number" /><Field label="Certificate Number" required placeholder="Enter certificate number" /><Field label="Verification Code" required placeholder="e.g. NAB-R26-1842-0098" /></div><Button type="submit" disabled={loading} className="mt-7 w-full sm:w-auto">{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} {loading ? "Verifying Document..." : "Verify Document"}</Button></form><AnimatePresence>{verified && <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-6 border border-lime-200 bg-white"><div className="flex items-center gap-3 bg-lime-600 p-5 text-white"><CheckCircle2 className="h-7 w-7" /><div><div className="text-xs font-bold uppercase tracking-wider text-lime-100">Verification complete</div><h2 className="text-xl font-semibold">Document Verified</h2></div></div><div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">{[["Student", "{resultData.studentName}"], ["Document", "Senior Secondary Marksheet"], ["Roll Number", "{resultData.enrollmentNumber}"], ["Issue Date", "17 August 2026"], ["Programme", "Senior Secondary"], ["Verification ID", "NAB-R26-1842-0098"]].map(([label, value]) => <div key={label}><span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label}</span><b className="mt-1 block text-sm text-stone-800">{value}</b></div>)}</div></motion.section>}</AnimatePresence></div></main></>;
+  return <><PageHero title="Verify result or certificate" text="Enter the document details below to perform secure verification of an academic record." label="Document Verification" navigate={navigate} /><main className="bg-[#fcf7f8] py-8 md:py-12"><div className="mx-auto max-w-[900px] px-5 md:px-8"><form onSubmit={verify} className="border border-stone-200 bg-white p-6 md:p-9"><div className="grid gap-5 md:grid-cols-2"><SelectField label="Document Type" required options={["Result", "Marksheet", "Certificate", "Migration Certificate"]} /><Field label="Roll Number" required placeholder="Enter enrollment number" /><Field label="Certificate Number" required placeholder="Enter certificate number" /><Field label="Verification Code" required placeholder="e.g. NAB-R26-1842-0098" /></div><Button type="submit" disabled={loading} className="mt-7 w-full sm:w-auto">{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} {loading ? "Verifying Document..." : "Verify Document"}</Button></form><AnimatePresence>{verified && <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-6 border border-lime-200 bg-white"><div className="flex items-center gap-3 bg-lime-600 p-5 text-white"><CheckCircle2 className="h-7 w-7" /><div><div className="text-xs font-bold uppercase tracking-wider text-lime-100">Verification complete</div><h2 className="text-xl font-semibold">Document Verified</h2></div></div><div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">{[["Student", "{resultData.studentName}"], ["Document", "Senior Secondary Marksheet"], ["Roll Number", "{resultData.enrollmentNumber}"], ["Issue Date", "17 August 2026"], ["Programme", "Senior Secondary"], ["Verification ID", "NAB-R26-1842-0098"]].map(([label, value]) => <div key={label}><span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label}</span><b className="mt-1 block text-sm text-stone-800">{value}</b></div>)}</div></motion.section>}</AnimatePresence></div></main></>;
 }
 
 function ResultArchivePage({ navigate }: { navigate: Navigate }) {
@@ -492,7 +503,7 @@ function NewsPage({ navigate }: { navigate: Navigate }) {
 }
 
 function NewsDetailPage({ navigate }: { navigate: Navigate }) {
-  return <><div className="bg-[#fbf4f5] py-5"><div className="mx-auto max-w-[1160px] px-5 md:px-8"><Breadcrumb items={["News", "Result Declaration"]} navigate={navigate} /></div></div><main className="py-12 md:py-16"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[1fr_300px]"><article><div className="flex items-center gap-3"><StatusBadge tone="blue">Result</StatusBadge><span className="text-xs text-stone-500">Published 17 August 2026</span></div><h1 className="mt-5 max-w-3xl text-[clamp(2.2rem,4.6vw,4.1rem)] font-semibold leading-[1.04] tracking-[-.045em] text-[#4a131c]">Senior Secondary Examination Result 2026 declared</h1><p className="mt-5 max-w-3xl text-lg leading-8 text-stone-600">Students can now access their verified digital result and provisional marksheet through the official examination portal.</p><img src={images.graduation} alt="Graduates celebrating academic achievement" className="mt-9 aspect-[16/9] w-full object-cover" /><div className="prose-demo mt-9 space-y-5 text-[15px] leading-8 text-stone-700"><p>The Thar Board of School and Technical Education has published the result of the Senior Secondary Examination 2026. Candidates may use their enrollment number, registration details and date of birth to access the result securely.</p><h2 className="text-2xl font-semibold text-[#4a131c]">How to access the result</h2><p>Open the Results section, choose Senior Secondary Examination 2026, and enter the candidate details exactly as shown on the admit card. After successful lookup, the provisional marksheet may be viewed, printed or downloaded.</p><p>Students who identify a discrepancy should contact the examination helpdesk and keep their enrollment number and registration number ready. Revaluation and document services are available through the Student Zone.</p></div><div className="mt-10 border border-stone-200 bg-[#fcf7f8] p-5"><h3 className="font-semibold text-[#4a131c]">Attachments</h3><button className="mt-4 flex w-full items-center justify-between gap-4 border-t border-stone-200 pt-4 text-left"><span className="flex items-center gap-3"><FileText className="h-6 w-6 text-red-500" /><span><b className="block text-sm text-stone-800">Result declaration notice</b><span className="text-xs text-stone-500">PDF, 820 KB</span></span></span><Download className="h-4 w-4 text-[#8d1c2f]" /></button></div></article><aside><div className="sticky top-20 border-t-4 border-[#8d1c2f] bg-[#fbf4f5] p-5"><h2 className="font-semibold text-[#4a131c]">Latest Updates</h2><div className="mt-3">{newsItems.slice(1, 5).map((item) => <button key={item.title} onClick={() => navigate("news-detail")} className="block w-full border-b border-stone-200 py-4 text-left"><span className="text-[10px] font-bold uppercase tracking-wider text-[#d85d05]">{item.category}</span><h3 className="mt-1 text-sm font-semibold leading-5 text-stone-700 hover:text-[#8d1c2f]">{item.title}</h3><span className="mt-1 block text-[11px] text-stone-400">{item.date}</span></button>)}</div></div></aside></div></main></>;
+  return <><div className="bg-[#fbf4f5] py-5"><div className="mx-auto max-w-[1160px] px-5 md:px-8"><Breadcrumb items={["News", "Result Declaration"]} navigate={navigate} /></div></div><main className="py-12 md:py-16"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[1fr_300px]"><article><div className="flex items-center gap-3"><StatusBadge tone="blue">Result</StatusBadge><span className="text-xs text-stone-500">Published 17 August 2026</span></div><h1 className="mt-5 max-w-3xl text-[clamp(2.2rem,4.6vw,4.1rem)] font-semibold leading-[1.04] tracking-[-.045em] text-[#4a131c]">Senior Secondary Examination Result 2026 declared</h1><p className="mt-5 max-w-3xl text-lg leading-8 text-stone-600">Students can now access their verified digital result and provisional marksheet through the official examination portal.</p><img src={images.graduation} alt="Graduates celebrating academic achievement" className="mt-9 aspect-[16/9] w-full object-cover" /><div className="prose mt-9 space-y-5 text-[15px] leading-8 text-stone-700"><p>The Thar Board of School and Technical Education has published the result of the Senior Secondary Examination 2026. Candidates may use their enrollment number, registration details and date of birth to access the result securely.</p><h2 className="text-2xl font-semibold text-[#4a131c]">How to access the result</h2><p>Open the Results section, choose Senior Secondary Examination 2026, and enter the candidate details exactly as shown on the admit card. After successful lookup, the provisional marksheet may be viewed, printed or downloaded.</p><p>Students who identify a discrepancy should contact the examination helpdesk and keep their enrollment number and registration number ready. Revaluation and document services are available through the Student Zone.</p></div><div className="mt-10 border border-stone-200 bg-[#fcf7f8] p-5"><h3 className="font-semibold text-[#4a131c]">Attachments</h3><button className="mt-4 flex w-full items-center justify-between gap-4 border-t border-stone-200 pt-4 text-left"><span className="flex items-center gap-3"><FileText className="h-6 w-6 text-red-500" /><span><b className="block text-sm text-stone-800">Result declaration notice</b><span className="text-xs text-stone-500">PDF, 820 KB</span></span></span><Download className="h-4 w-4 text-[#8d1c2f]" /></button></div></article><aside><div className="sticky top-20 border-t-4 border-[#8d1c2f] bg-[#fbf4f5] p-5"><h2 className="font-semibold text-[#4a131c]">Latest Updates</h2><div className="mt-3">{newsItems.slice(1, 5).map((item) => <button key={item.title} onClick={() => navigate("news-detail")} className="block w-full border-b border-stone-200 py-4 text-left"><span className="text-[10px] font-bold uppercase tracking-wider text-[#d85d05]">{item.category}</span><h3 className="mt-1 text-sm font-semibold leading-5 text-stone-700 hover:text-[#8d1c2f]">{item.title}</h3><span className="mt-1 block text-[11px] text-stone-400">{item.date}</span></button>)}</div></div></aside></div></main></>;
 }
 
 function NoticesPage({ navigate }: { navigate: Navigate }) {
@@ -607,7 +618,14 @@ function GalleryPage({ navigate }: { navigate: Navigate }) {
 function ContactPage({ navigate }: { navigate: Navigate }) {
   const [sent, setSent] = useState(false); const [sending, setSending] = useState(false);
   function submit(e: FormEvent) { e.preventDefault(); setSending(true); window.setTimeout(() => { setSending(false); setSent(true); }, 900); }
-  return <><PageHero title="Contact the Board" text="Connect with our student services and examination support teams." label="Contact Us" image={images.conversation} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[.8fr_1.2fr]"><section><SectionHeading eyebrow="Get in Touch" title="We are here to help" text="For result queries, keep your enrollment number and registration number available when contacting support." /><div className="mt-7 space-y-5">{[[MapPin, "Office Address", "Centre of India District-Etawah, Uttar Pradesh"], [Phone, "Examination Helpline", "+91 8869844584"], [Mail, "Email", "help@tbste.edu"], [Clock3, "Working Hours", "Monday-Friday, 9:30 AM-5:30 PM"]].map(([Icon, label, value]) => { const I = Icon as LucideIcon; return <div key={label as string} className="flex gap-4"><I className="mt-1 h-5 w-5 shrink-0 text-[#8d1c2f]" /><div><h3 className="text-sm font-semibold text-[#4a131c]">{label as string}</h3><p className="mt-1 max-w-xs text-sm leading-6 text-stone-600">{value as string}</p></div></div>; })}</div></section><form onSubmit={submit} className="border border-stone-200 bg-[#fcf7f8] p-6 md:p-8"><h2 className="text-xl font-semibold text-[#4a131c]">Send a message</h2><div className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Full Name" required placeholder="Your full name" /><Field label="Email" required type="email" placeholder="you@example.com" /><Field label="Phone" placeholder="Phone number" /><SelectField label="Subject" options={["Result Query", "Examination Query", "Document Service", "Admission", "General"]} /></div><label className="mt-5 block text-sm font-semibold text-stone-700">Message<textarea required rows={5} placeholder="Describe how we can help" className="mt-2 w-full rounded-lg border border-stone-300 bg-white p-3.5 text-sm outline-none focus:border-[#8d1c2f]" /></label><Button type="submit" disabled={sending} className="mt-5">{sending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {sending ? "Sending..." : "Send Message"}</Button>{sent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 bg-lime-50 p-3 text-sm font-medium text-lime-700"><CheckCircle2 className="h-5 w-5" /> Your message has been submitted successfully.</motion.div>}</form></div><div className="mx-auto mt-14 max-w-[1160px] px-5 md:px-8"><div className="relative grid min-h-72 place-items-center overflow-hidden bg-[#f1e0e3]"><div className="absolute inset-0 opacity-40 [background-image:linear-gradient(#bd939a_1px,transparent_1px),linear-gradient(90deg,#bd939a_1px,transparent_1px)] [background-size:36px_36px]" /><div className="relative text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#8d1c2f] text-white shadow-lg"><MapPin className="h-6 w-6" /></span><h2 className="mt-3 font-semibold text-[#4a131c]">Centre of India District-Etawah</h2><p className="mt-1 text-xs text-stone-600">Uttar Pradesh, India</p></div></div></div></main><HelpCta navigate={navigate} /></>;
+  const { cmsData } = useContext(CmsContext) as any;
+  const phone = cmsData["contact.phone"] || "+91 8869844584";
+  const email = cmsData["contact.email"] || "help@tbste.edu";
+  const hours = cmsData["contact.workingHours"] || "Monday-Friday, 9:30 AM-5:30 PM";
+  const addrs = cmsData["contact.addresses"] || ["Centre of India District-Etawah, Uttar Pradesh"];
+  const primaryAddr = addrs[0];
+
+  return <><PageHero title="Contact the Board" text="Connect with our student services and examination support teams." label="Contact Us" image={images.conversation} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[.8fr_1.2fr]"><section><SectionHeading eyebrow="Get in Touch" title="We are here to help" text="For result queries, keep your enrollment number and registration number available when contacting support." /><div className="mt-7 space-y-5">{[[MapPin, "Office Address", primaryAddr], [Phone, "Examination Helpline", phone], [Mail, "Email", email], [Clock3, "Working Hours", hours]].map(([Icon, label, value]) => { const I = Icon as LucideIcon; return <div key={label as string} className="flex gap-4"><I className="mt-1 h-5 w-5 shrink-0 text-[#8d1c2f]" /><div><h3 className="text-sm font-semibold text-[#4a131c]">{label as string}</h3><p className="mt-1 max-w-xs text-sm leading-6 text-stone-600">{value as string}</p></div></div>; })}</div></section><form onSubmit={submit} className="border border-stone-200 bg-[#fcf7f8] p-6 md:p-8"><h2 className="text-xl font-semibold text-[#4a131c]">Send a message</h2><div className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Full Name" required placeholder="Your full name" /><Field label="Email" required type="email" placeholder="you@example.com" /><Field label="Phone" type="tel" pattern="[0-9]{10}" placeholder="10-digit mobile number" /><SelectField label="Subject" options={["Result Query", "Examination Query", "Document Service", "Admission", "General"]} /></div><label className="mt-5 block text-sm font-semibold text-stone-700">Message<textarea required rows={5} placeholder="Describe how we can help" className="mt-2 w-full rounded-lg border border-stone-300 bg-white p-3.5 text-sm outline-none focus:border-[#8d1c2f]" /></label><Button type="submit" disabled={sending} className="mt-5">{sending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {sending ? "Sending..." : "Send Message"}</Button>{sent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 bg-lime-50 p-3 text-sm font-medium text-lime-700"><CheckCircle2 className="h-5 w-5" /> Your message has been submitted successfully.</motion.div>}</form></div><div className="mx-auto mt-14 max-w-[1160px] px-5 md:px-8"><div className="relative grid min-h-72 place-items-center overflow-hidden bg-[#f1e0e3]"><div className="absolute inset-0 opacity-40 [background-image:linear-gradient(#bd939a_1px,transparent_1px),linear-gradient(90deg,#bd939a_1px,transparent_1px)] [background-size:36px_36px]" /><div className="relative text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#8d1c2f] text-white shadow-lg"><MapPin className="h-6 w-6" /></span><h2 className="mt-3 font-semibold text-[#4a131c]">{primaryAddr.split(",")[0] || "Head Office"}</h2><p className="mt-1 text-xs text-stone-600">{primaryAddr.split(",").slice(1).join(",") || "India"}</p></div></div></div></main><HelpCta navigate={navigate} /></>;
 }
 
 const adminNav: { label: string; page: Page; icon: LucideIcon }[] = [
@@ -638,17 +656,23 @@ function AdminShell({ page, navigate, notify, selectedProgrammeId, setSelectedPr
 }
 
 function AdminDashboard({ navigate }: { navigate: Navigate }) {
+  const [data, setData] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    fetch("/api/dashboard").then(r => r.json()).then(setData).catch(console.error);
+  }, []);
+
   const metrics: { label: string; value: string; change: string; icon: LucideIcon; color: string }[] = [
-    { label: "Total Students", value: "52,840", change: "+4.8% this year", icon: Users, color: "bg-stone-50 text-stone-700" },
-    { label: "Published Results", value: "18", change: "3 this month", icon: FileCheck2, color: "bg-lime-50 text-lime-700" },
-    { label: "Pending Results", value: "3", change: "Requires review", icon: Clock3, color: "bg-amber-50 text-amber-700" },
-    { label: "Upcoming Exams", value: "7", change: "Next: 18 Oct", icon: CalendarDays, color: "bg-violet-50 text-violet-700" },
-    { label: "News Published", value: "126", change: "8 this month", icon: Newspaper, color: "bg-sky-50 text-sky-700" },
-    { label: "Downloads", value: "84.2K", change: "+12.4% this month", icon: Download, color: "bg-orange-50 text-orange-700" },
+    { label: "Total Students", value: data ? data.metrics.totalStudents.toString() : "-", change: "Registered users", icon: Users, color: "bg-stone-50 text-stone-700" },
+    { label: "Published Results", value: data ? data.metrics.publishedResults.toString() : "-", change: "Live records", icon: FileCheck2, color: "bg-lime-50 text-lime-700" },
+    { label: "Pending Results", value: data ? data.metrics.pendingResults.toString() : "-", change: "Requires review", icon: Clock3, color: "bg-amber-50 text-amber-700" },
+    { label: "Total Programmes", value: data ? data.metrics.totalProgrammes.toString() : "-", change: "Active offerings", icon: CalendarDays, color: "bg-violet-50 text-violet-700" },
+    { label: "Total Documents", value: data ? data.metrics.totalDocuments.toString() : "-", change: "Downloads available", icon: Download, color: "bg-orange-50 text-orange-700" },
   ];
+
   return <><AdminHeader title="Dashboard" text="Overview of examinations, results and portal activity." actions={<Button onClick={() => navigate("admin-import")}><UploadCloud className="h-4 w-4" /> Import Results</Button>} /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{metrics.map((item) => <div key={item.label} className="border border-stone-200 bg-white p-5"><div className="flex items-start justify-between"><div><p className="text-xs font-medium text-stone-500">{item.label}</p><strong className="mt-2 block text-2xl tracking-tight text-stone-900">{item.value}</strong><span className="mt-2 block text-[11px] text-stone-400">{item.change}</span></div><span className={`grid h-10 w-10 place-items-center rounded-lg ${item.color}`}><item.icon className="h-5 w-5" /></span></div></div>)}</div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_.8fr]"><section className="border border-stone-200 bg-white p-5 md:p-6"><div className="mb-6 flex items-center justify-between"><div><h2 className="font-semibold text-stone-900">Result Activity</h2><p className="mt-1 text-xs text-stone-400">Last 7 months</p></div><select className="rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-500"><option>Last 7 months</option></select></div><div className="flex h-64 items-end gap-3 border-b border-l border-stone-200 px-4 pt-4 sm:gap-5">{[42, 56, 48, 71, 66, 82, 94].map((value, i) => <div className="group flex h-full flex-1 items-end gap-1" key={i}><motion.div initial={{ height: 0 }} animate={{ height: `${value}%` }} transition={{ duration: .6, delay: i * .06 }} className="w-1/2 rounded-t-sm bg-[#a1283c]" title={`Results viewed: ${value}k`} /><motion.div initial={{ height: 0 }} animate={{ height: `${value * .55}%` }} transition={{ duration: .6, delay: i * .06 + .08 }} className="w-1/2 rounded-t-sm bg-[#f8893a]" title={`Verifications: ${Math.round(value * .55)}k`} /></div>)}</div><div className="mt-4 flex justify-center gap-5 text-[11px] text-stone-500"><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 bg-[#a1283c]" /> Results viewed</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 bg-[#f8893a]" /> Verification requests</span></div></section><section className="border border-stone-200 bg-white p-5 md:p-6"><h2 className="font-semibold text-stone-900">Publishing Progress</h2><p className="mt-1 text-xs text-stone-400">Current examination cycle</p><div className="mt-7 flex justify-center"><div className="relative grid h-40 w-40 place-items-center rounded-full" style={{ background: "conic-gradient(#a1283c 0 78%, #f3e8ea 78% 100%)" }}><div className="grid h-28 w-28 place-items-center rounded-full bg-white text-center"><div><strong className="text-3xl text-stone-900">78%</strong><span className="block text-[10px] text-stone-400">Validated</span></div></div></div></div><div className="mt-7 space-y-3">{[["Records processed", "18,420"], ["Awaiting review", "382"], ["Errors flagged", "24"]].map(([label, value]) => <div key={label} className="flex justify-between text-xs"><span className="text-stone-500">{label}</span><b className="text-stone-800">{value}</b></div>)}</div></section></div>
-    <section className="mt-6 border border-stone-200 bg-white"><div className="flex items-center justify-between border-b border-stone-200 px-5 py-4"><div><h2 className="font-semibold text-stone-900">Recent Result Publications</h2><p className="mt-1 text-xs text-stone-400">Latest activity across all programmes</p></div><Button variant="ghost" className="min-h-9 px-2" onClick={() => navigate("admin-results")}>View all</Button></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-xs"><thead className="bg-stone-50 uppercase tracking-wider text-stone-400"><tr><th className="px-5 py-3">Examination</th><th className="px-5 py-3">Records</th><th className="px-5 py-3">Published</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Views</th></tr></thead><tbody>{resultRows.slice(0, 3).map((row, index) => <tr className="border-t border-stone-100" key={row.name}><td className="px-5 py-4 font-semibold text-stone-700">{row.name}</td><td className="px-5 py-4 text-stone-500">{[12480, 18320, 2450][index].toLocaleString()}</td><td className="px-5 py-4 text-stone-500">{row.date}</td><td className="px-5 py-4"><StatusBadge tone="green">Published</StatusBadge></td><td className="px-5 py-4 text-stone-500">{[38600, 52100, 4800][index].toLocaleString()}</td></tr>)}</tbody></table></div></section>
+    <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_.8fr]"><section className="border border-stone-200 bg-white p-5 md:p-6"><div className="mb-6 flex items-center justify-between"><div><h2 className="font-semibold text-stone-900">Result Activity</h2><p className="mt-1 text-xs text-stone-400">Last 7 months</p></div><select className="rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-500"><option>Last 7 months</option></select></div><div className="flex h-64 items-end gap-3 border-b border-l border-stone-200 px-4 pt-4 sm:gap-5">{[42, 56, 48, 71, 66, 82, 94].map((value, i) => <div className="group flex h-full flex-1 items-end gap-1" key={i}><motion.div initial={{ height: 0 }} animate={{ height: `${value}%` }} transition={{ duration: .6, delay: i * .06 }} className="w-1/2 rounded-t-sm bg-[#a1283c]" title={`Results viewed: ${value}k`} /><motion.div initial={{ height: 0 }} animate={{ height: `${value * .55}%` }} transition={{ duration: .6, delay: i * .06 + .08 }} className="w-1/2 rounded-t-sm bg-[#f8893a]" title={`Verifications: ${Math.round(value * .55)}k`} /></div>)}</div><div className="mt-4 flex justify-center gap-5 text-[11px] text-stone-500"><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 bg-[#a1283c]" /> Results viewed</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 bg-[#f8893a]" /> Verification requests</span></div></section><section className="border border-stone-200 bg-white p-5 md:p-6"><h2 className="font-semibold text-stone-900">Publishing Progress</h2><p className="mt-1 text-xs text-stone-400">Current database overview</p><div className="mt-7 flex justify-center"><div className="relative grid h-40 w-40 place-items-center rounded-full" style={{ background: "conic-gradient(#a1283c 0 78%, #f3e8ea 78% 100%)" }}><div className="grid h-28 w-28 place-items-center rounded-full bg-white text-center"><div><strong className="text-3xl text-stone-900">{data?.metrics.totalResults > 0 ? Math.round((data.metrics.publishedResults / data.metrics.totalResults) * 100) : 0}%</strong><span className="block text-[10px] text-stone-400">Published</span></div></div></div></div><div className="mt-7 space-y-3">{[["Total Students", data?.metrics.totalStudents || 0], ["Total Results", data?.metrics.totalResults || 0], ["Total Documents", data?.metrics.totalDocuments || 0]].map(([label, value]) => <div key={label} className="flex justify-between text-xs"><span className="text-stone-500">{label}</span><b className="text-stone-800">{value as number}</b></div>)}</div></section></div>
+    <section className="mt-6 border border-stone-200 bg-white"><div className="flex items-center justify-between border-b border-stone-200 px-5 py-4"><div><h2 className="font-semibold text-stone-900">Recent Result Publications</h2><p className="mt-1 text-xs text-stone-400">Latest result records added to database</p></div><Button variant="ghost" className="min-h-9 px-2" onClick={() => navigate("admin-results")}>View all</Button></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-xs"><thead className="bg-stone-50 uppercase tracking-wider text-stone-400"><tr><th className="px-5 py-3">Student Name</th><th className="px-5 py-3">Enrollment</th><th className="px-5 py-3">Examination</th><th className="px-5 py-3">Status</th></tr></thead><tbody>{data?.recentResults ? data.recentResults.map((row: any) => <tr className="border-t border-stone-100" key={row._id}><td className="px-5 py-4 font-semibold text-stone-700">{row.studentName}</td><td className="px-5 py-4 text-stone-500">{row.enrollmentNumber}</td><td className="px-5 py-4 text-stone-500">{row.examination} - {row.examYear}</td><td className="px-5 py-4"><StatusBadge tone={row.resultStatus === "Published" ? "green" : "amber"}>{row.resultStatus}</StatusBadge></td></tr>) : <tr><td colSpan={4} className="p-4 text-center text-xs text-stone-400">Loading recent records...</td></tr>}</tbody></table></div></section>
   </>;
 }
 
@@ -1535,6 +1559,28 @@ function AdminDownloads({ notify }: { notify: (message: string) => void }) {
     {/* ADD DOCUMENT MODAL */}
     <AnimatePresence>{showAddModal && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] grid place-items-center bg-stone-950/50 p-5"><motion.form initial={{ scale: .96, y: 10 }} animate={{ scale: 1, y: 0 }} onSubmit={handleUpload} className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4"><h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">Upload New Document</h3><button type="button" onClick={() => setShowAddModal(false)}><X className="h-5 w-5 text-stone-400" /></button></div><div className="space-y-4"><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Document Title *</label><input required className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Examination Form 2026" /></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Category *</label><select className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={category} onChange={e => setCategory(e.target.value)}><option value="Form">Form</option><option value="Syllabus">Syllabus</option><option value="Prospectus">Prospectus</option><option value="Circular">Circular</option><option value="Notice">Notice</option><option value="Study Material">Study Material</option><option value="Notes">Notes</option></select></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Allocate Programme</label><select className="w-full rounded border border-stone-200 p-2 text-xs outline-none focus:border-[#a1283c]" value={programme} onChange={e => setProgramme(e.target.value)}><option value="All Programmes">All Programmes</option>{progs.map(p => <option key={p._id} value={p.title}>{p.title}</option>)}</select></div><div><label className="block text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Choose File *</label><input required type="file" onChange={e => setFile(e.target.files?.[0] || null)} className="w-full text-xs text-stone-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200" /></div></div><div className="flex justify-end gap-2 border-t border-stone-200 pt-4 mt-4"><Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button><Button disabled={saving} type="submit">{saving ? "Uploading..." : "Upload"}</Button></div></motion.form></motion.div>}</AnimatePresence></>;
 }
+const CMSField = ({ label, fkey, rows, fv, set }: { label: string; fkey: string; rows?: number, fv: any, set: any }) => (
+    <div>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-500">{label}</label>
+      {rows
+        ? <textarea className="w-full rounded-lg border border-stone-200 p-3 text-sm focus:border-[#a1283c] outline-none resize-none" rows={rows} value={fv[fkey] || ""} onChange={e => set(fkey, e.target.value)} />
+        : <input className="w-full rounded-lg border border-stone-200 p-3 text-sm focus:border-[#a1283c] outline-none" value={fv[fkey] || ""} onChange={e => set(fkey, e.target.value)} />}
+    </div>
+);
+
+const CMSImageUpload = ({ label, fkey, fv, handleImg }: { label: string; fkey: string, fv: any, handleImg: any }) => (
+    <div>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-500">{label}</label>
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-4">
+        {fv[fkey] && <img src={fv[fkey]} alt="" className="h-16 w-24 rounded object-cover border" />}
+        <label className="cursor-pointer rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50">
+          Choose Image<input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleImg(fkey, e.target.files[0])} />
+        </label>
+        <span className="text-[11px] text-stone-400">JPG, PNG, WebP</span>
+      </div>
+    </div>
+);
+
 function AdminSettings({ notify }) {
   const { cmsData: rawCms, fetchCms } = React.useContext(CmsContext);
   const cmsData = rawCms || {};
@@ -1570,7 +1616,11 @@ function AdminSettings({ notify }) {
       "org.name": cmsData["org.name"] || "Thar Board of School and Technical Education",
       "org.tagline": cmsData["org.tagline"] || "Examination & Certification Authority",
       "org.email": cmsData["org.email"] || "help@tbste.edu",
-      "org.phone": cmsData["org.phone"] || "1800-123-2026",
+      "org.phone": cmsData["org.phone"] || "+91 8869844584",
+      "contact.phone": cmsData["contact.phone"] || "+91 8869844584",
+      "contact.email": cmsData["contact.email"] || "help@tbste.edu",
+      "contact.workingHours": cmsData["contact.workingHours"] || "Monday-Friday, 9:30 AM-5:30 PM",
+      "contact.addresses": cmsData["contact.addresses"] || ["Centre of India District-Etawah, Uttar Pradesh, India"],
     });
   }, [cmsData]);
 
@@ -1593,14 +1643,14 @@ function AdminSettings({ notify }) {
     setSaving(true);
     try {
       await Promise.all(Object.entries(fv).map(([key, value]) =>
-        fetch("/api/cms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, type: "text", value }) })
+        fetch("/api/cms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, type: Array.isArray(value) ? "json" : "text", value }) })
       ));
       await fetchCms();
       notify("All settings saved to database successfully!");
     } catch (e) { alert("Error saving"); } finally { setSaving(false); }
   };
 
-  const tabs = ["Home Page", "About Page", "Programmes", "General Information"];
+  const tabs = ["Home Page", "About Page", "Programmes", "General Information", "Contact Details"];
 
   const F = ({ label, fkey, rows }: { label: string; fkey: string; rows?: number }) => (
     <div>
@@ -1643,58 +1693,58 @@ function AdminSettings({ notify }) {
             <h2 className="text-base font-semibold text-stone-900 mb-1">Hero Section</h2>
             <p className="text-xs text-stone-400 mb-6">Edit the hero banner text and background image on the homepage.</p>
             <div className="space-y-5">
-              <F label="Hero Title" fkey="home.hero.title" rows={2} />
-              <F label="Hero Subtext" fkey="home.hero.text" rows={3} />
-              <ImgU label="Hero Background Image" fkey="home.hero.image" />
+              <CMSField fv={fv} set={set} label="Hero Title" fkey="home.hero.title" rows={2} />
+              <CMSField fv={fv} set={set} label="Hero Subtext" fkey="home.hero.text" rows={3} />
+              <CMSImageUpload fv={fv} handleImg={handleImg} label="Hero Background Image" fkey="home.hero.image" />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Quick Access Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.quick_access.title" />
-              <F label="Section Description" fkey="home.quick_access.text" rows={2} />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.quick_access.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.quick_access.text" rows={2} />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">About Board Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.about.title" />
-              <F label="Section Description" fkey="home.about.text" rows={3} />
-              <ImgU label="About Image" fkey="home.about.image" />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.about.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.about.text" rows={3} />
+              <CMSImageUpload fv={fv} handleImg={handleImg} label="About Image" fkey="home.about.image" />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Latest Results Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.results.title" />
-              <F label="Section Description" fkey="home.results.text" rows={2} />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.results.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.results.text" rows={2} />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Academic Pathways Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.programmes.title" />
-              <F label="Section Description" fkey="home.programmes.text" rows={2} />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.programmes.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.programmes.text" rows={2} />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Examination Cycle Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.exams.title" />
-              <F label="Section Description" fkey="home.exams.text" rows={2} />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.exams.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.exams.text" rows={2} />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Official Updates Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="home.news.title" />
-              <F label="Section Description" fkey="home.news.text" rows={2} />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="home.news.title" />
+              <CMSField fv={fv} set={set} label="Section Description" fkey="home.news.text" rows={2} />
             </div>
           </div>
 
@@ -1705,33 +1755,33 @@ function AdminSettings({ notify }) {
             <h2 className="text-base font-semibold text-stone-900 mb-1">Hero Section</h2>
             <p className="text-xs text-stone-400 mb-6">Edit the hero text and image on the About page.</p>
             <div className="space-y-5">
-              <F label="Hero Title" fkey="about.hero.title" />
-              <F label="Hero Subtext" fkey="about.hero.text" rows={3} />
-              <ImgU label="Hero Background Image" fkey="about.hero.image" />
+              <CMSField fv={fv} set={set} label="Hero Title" fkey="about.hero.title" />
+              <CMSField fv={fv} set={set} label="Hero Subtext" fkey="about.hero.text" rows={3} />
+              <CMSImageUpload fv={fv} handleImg={handleImg} label="Hero Background Image" fkey="about.hero.image" />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Our Organization Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="about.org.title" />
-              <F label="Mission Text" fkey="about.mission.text" rows={3} />
-              <F label="Vision Text" fkey="about.vision.text" rows={3} />
-              <ImgU label="Section Image" fkey="about.org.image" />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="about.org.title" />
+              <CMSField fv={fv} set={set} label="Mission Text" fkey="about.mission.text" rows={3} />
+              <CMSField fv={fv} set={set} label="Vision Text" fkey="about.vision.text" rows={3} />
+              <CMSImageUpload fv={fv} handleImg={handleImg} label="Section Image" fkey="about.org.image" />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Guiding Principles Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="about.principles.title" />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="about.principles.title" />
             </div>
           </div>
 
           <div className="border-t border-stone-200 pt-8">
             <h2 className="text-base font-semibold text-stone-900 mb-1">Milestones Section</h2>
             <div className="space-y-5 mt-4">
-              <F label="Section Title" fkey="about.milestones.title" />
+              <CMSField fv={fv} set={set} label="Section Title" fkey="about.milestones.title" />
             </div>
           </div>
 
@@ -1739,26 +1789,71 @@ function AdminSettings({ notify }) {
         {activeTab === "Programmes" && <div className="border border-stone-200 bg-white p-6 md:p-8">
           <h2 className="text-base font-semibold text-stone-900 mb-1">Programmes Page</h2>
           <div className="space-y-5">
-            <F label="Hero Title" fkey="programmes.hero.title" />
-            <F label="Hero Subtext" fkey="programmes.hero.text" rows={3} />
-            <ImgU label="Hero Background Image" fkey="programmes.hero.image" />
+            <CMSField fv={fv} set={set} label="Hero Title" fkey="programmes.hero.title" />
+            <CMSField fv={fv} set={set} label="Hero Subtext" fkey="programmes.hero.text" rows={3} />
+            <CMSImageUpload fv={fv} handleImg={handleImg} label="Hero Background Image" fkey="programmes.hero.image" />
           </div>
         </div>}
         {activeTab === "General Information" && <div className="border border-stone-200 bg-white p-6 md:p-8">
           <h2 className="text-base font-semibold text-stone-900 mb-1">General Information</h2>
           <p className="text-xs text-stone-400 mb-6">Organization details shown site-wide.</p>
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="md:col-span-2"><F label="Organization Name" fkey="org.name" /></div>
-            <div className="md:col-span-2"><F label="Official Tagline" fkey="org.tagline" /></div>
-            <F label="Public Email" fkey="org.email" />
-            <F label="Helpline Number" fkey="org.phone" />
+            <div className="md:col-span-2"><CMSField fv={fv} set={set} label="Organization Name" fkey="org.name" /></div>
+            <div className="md:col-span-2"><CMSField fv={fv} set={set} label="Official Tagline" fkey="org.tagline" /></div>
+          </div>
+        </div>}
+        {activeTab === "Contact Details" && <div className="border border-stone-200 bg-white p-6 md:p-8">
+          <h2 className="text-base font-semibold text-stone-900 mb-1">Contact Methods</h2>
+          <p className="text-xs text-stone-400 mb-6">Contact numbers and email used in Contact page and Headers.</p>
+          <div className="grid gap-5 md:grid-cols-2">
+            <CMSField fv={fv} set={set} label="Public Email (Header)" fkey="org.email" />
+            <CMSField fv={fv} set={set} label="Helpline Number (Header)" fkey="org.phone" />
+            <CMSField fv={fv} set={set} label="Examination Helpline" fkey="contact.phone" />
+            <CMSField fv={fv} set={set} label="Contact Email" fkey="contact.email" />
+            <CMSField fv={fv} set={set} label="Working Hours" fkey="contact.workingHours" />
+          </div>
+          
+          <div className="border-t border-stone-200 pt-8 mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-base font-semibold text-stone-900 mb-1">Office Addresses</h2>
+                <p className="text-xs text-stone-400">Multiple addresses reflect instantly across footer and contact pages.</p>
+              </div>
+              <Button type="button" variant="secondary" onClick={() => {
+                const addrs = [...(fv["contact.addresses"] || [])];
+                addrs.push("");
+                set("contact.addresses", addrs);
+              }}><Plus className="h-4 w-4" /> Add Address</Button>
+            </div>
+            <div className="space-y-4">
+              {(fv["contact.addresses"] || []).map((addr: string, idx: number) => (
+                <div key={idx} className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-500">Address {idx + 1}</label>
+                    <textarea rows={2} className="w-full rounded-lg border border-stone-200 p-3 text-sm focus:border-[#a1283c] outline-none resize-none" value={addr} onChange={e => {
+                      const addrs = [...fv["contact.addresses"]];
+                      addrs[idx] = e.target.value;
+                      set("contact.addresses", addrs);
+                    }} placeholder="Enter full address..." />
+                  </div>
+                  {fv["contact.addresses"].length > 1 && (
+                    <button type="button" onClick={() => {
+                      const addrs = [...fv["contact.addresses"]];
+                      addrs.splice(idx, 1);
+                      set("contact.addresses", addrs);
+                    }} className="mt-6 self-start p-2 text-stone-400 hover:text-red-500 bg-stone-50 rounded-lg border border-stone-200">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>}
       </div>
     </div>
   </>;
 }
-
 
 function AdminCollection({ page, notify, navigate, setSelectedProgrammeId }: { page: Page; notify: (message: string) => void; navigate?: Navigate; setSelectedProgrammeId?: (id: string | null) => void }) {
   const [progs, setProgs] = useState<any[]>([]);
@@ -4532,6 +4627,22 @@ export default function App() {
   useEffect(() => {
     const label = [...adminNav, ...navItems].find((item) => item.page === page)?.label || "Official Portal";
     document.title = `${label} | Thar Board of School and Technical Education`;
+
+    const descriptions: Record<string, string> = {
+      "home": "Official portal for Thar Board of School and Technical Education. Access examination results, admit cards, student services, and academic programmes.",
+      "about": "Learn about the Thar Board of School and Technical Education, our mission, vision, and guiding principles.",
+      "contact": "Contact the Thar Board of School and Technical Education for student services, examination support, and result queries.",
+      "programmes": "Explore academic programmes offered by the Thar Board of School and Technical Education.",
+      "results": "Check your examination results online. Enter your enrollment number and registration number to view your results."
+    };
+    
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', descriptions[page as string] || descriptions["home"]);
   }, [page]);
 
   function navigate(next: Page) {

@@ -1,7 +1,10 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/admin/login/route": "app/api/admin/login/route.js",
   "/api/cms/route": "app/api/cms/route.js",
+  "/api/contact/route": "app/api/contact/route.js",
+  "/api/dashboard/route": "app/api/dashboard/route.js",
   "/api/documents/route": "app/api/documents/route.js",
   "/api/editorial/route": "app/api/editorial/route.js",
   "/api/exams/route": "app/api/exams/route.js",
