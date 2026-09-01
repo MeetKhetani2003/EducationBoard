@@ -4616,7 +4616,6 @@ export default function App() {
   }, []);
 
   useEffect(() => { fetchCms(); }, [fetchCms]);
-
   useEffect(() => {
     setPage(pageFromHash());
     const syncPage = () => setPage(pageFromHash());
@@ -4626,7 +4625,8 @@ export default function App() {
 
   useEffect(() => {
     const label = [...adminNav, ...navItems].find((item) => item.page === page)?.label || "Official Portal";
-    document.title = `${label} | Thar Board of School and Technical Education`;
+    const title = `${label} | Thar Board of School and Technical Education`;
+    document.title = title;
 
     const descriptions: Record<string, string> = {
       "home": "Official portal for Thar Board of School and Technical Education. Access examination results, admit cards, student services, and academic programmes.",
@@ -4636,13 +4636,34 @@ export default function App() {
       "results": "Check your examination results online. Enter your enrollment number and registration number to view your results."
     };
     
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
+    const desc = descriptions[page as string] || descriptions["home"];
+
+    const setMeta = (name: string, content: string, isProperty = false) => {
+      const attr = isProperty ? 'property' : 'name';
+      let meta = document.querySelector(`meta[${attr}="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attr, name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    setMeta('description', desc);
+    setMeta('og:title', title, true);
+    setMeta('og:description', desc, true);
+    setMeta('og:url', `https://tharboard.in/#${page}`, true);
+    setMeta('og:site_name', 'Thar Board of School and Technical Education', true);
+    setMeta('twitter:title', title);
+    setMeta('twitter:description', desc);
+    
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
     }
-    metaDesc.setAttribute('content', descriptions[page as string] || descriptions["home"]);
+    canonical.setAttribute('href', `https://tharboard.in/#${page}`);
   }, [page]);
 
   function navigate(next: Page) {

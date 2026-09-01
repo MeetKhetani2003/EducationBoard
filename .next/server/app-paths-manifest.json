@@ -18,5 +18,6 @@
   "/api/student-exams/route": "app/api/student-exams/route.js",
   "/api/students/route": "app/api/students/route.js",
   "/api/subjects/route": "app/api/subjects/route.js",
+  "/icon.png/route": "app/icon.png/route.js",
   "/page": "app/page.js"
 }
