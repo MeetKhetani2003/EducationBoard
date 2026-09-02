@@ -23,7 +23,7 @@ type Page =
   | "services" | "gallery" | "contact" | "admin-dashboard" | "admin-results"
   | "admin-import" | "admin-students" | "admin-exams" | "admin-news"
   | "admin-notices" | "admin-downloads" | "admin-programmes" | "admin-gallery"
-  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result" | "system-result-view" | "student-login" | "admin-programme-dashboard";
+  | "admin-recognition" | "admin-messages" | "admin-settings" | "admin-add-result" | "system-result-view" | "student-login" | "admin-programme-dashboard" | "programme-details";
 
 type Navigate = (page: Page) => void;
 
@@ -147,9 +147,9 @@ function PublicHeader({ navigate, active }: { navigate: Navigate; active: Page }
   const email = cmsData["org.email"] || "help@tbste.edu";
   
   return <><div className="bg-[#440d16] text-[11px] font-medium text-stone-100"><div className="mx-auto flex min-h-8 max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8"><div className="hidden items-center gap-2 sm:flex"><ShieldCheck className="h-3.5 w-3.5 text-[#ff9245]" /> Official Examination & Result Portal</div><div className="flex w-full items-center justify-end gap-4 sm:w-auto"><a href={`tel:${phone}`} className="hidden hover:text-white md:inline">Helpline: {phone}</a><button onClick={() => navigate("contact")} className="hover:text-white">Help</button><button className="inline-flex items-center gap-1 hover:text-white"><Accessibility className="h-3.5 w-3.5" /> Accessibility</button><button className="inline-flex items-center gap-1 hover:text-white"><Languages className="h-3.5 w-3.5" /> EN</button></div></div></div>
-    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>{email}</span></a><button onClick={() => navigate("student-login")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Staff login</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
+    <header className="border-b border-[#310910] bg-[#440d16]"><div className="mx-auto flex min-h-[84px] max-w-[1240px] items-center justify-between gap-6 px-5 py-3 md:px-8"><button onClick={() => navigate("home")} aria-label="Go to homepage"><Logo inverse /></button><div className="hidden items-center gap-7 text-xs text-stone-300 lg:flex"><a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Email Support</b>{email}</span></a><button onClick={() => navigate("student-login")} className="flex items-center gap-2 text-left hover:text-white"><UserCheck className="h-4 w-4 text-[#e8c476]" /><span><b className="block text-white">Student Portal</b>Secure login</span></button><button onClick={() => navigate("admin-dashboard")} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8c476]/30 px-4 font-semibold text-[#e8c476] transition-colors hover:bg-[#e8c476]/10"><LockKeyhole className="h-4 w-4" /> Admin Login (Secured)</button></div><button onClick={() => setMobileOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white lg:hidden" aria-label="Toggle navigation">{mobileOpen ? <X /> : <Menu />}</button></div></header>
     <nav className="sticky top-0 z-40 border-b border-stone-200 bg-white/96 shadow-[0_5px_18px_rgba(15,35,70,0.04)] backdrop-blur" aria-label="Main navigation"><div className="mx-auto hidden max-w-[1240px] items-center justify-between px-8 lg:flex"><div className="flex">{navItems.map((item) => <div className="group relative" key={item.label}><button onClick={() => navigate(item.page)} className={`flex h-12 items-center gap-1.5 border-b-2 px-3.5 text-[13px] font-semibold transition ${active === item.page ? "border-[#fb791c] text-[#8d1c2f]" : "border-transparent text-stone-700 hover:border-stone-200 hover:text-[#8d1c2f]"}`}>{item.label}{item.children && <ChevronDown className="h-3.5 w-3.5" />}</button>{item.children && <div className="invisible absolute left-0 top-[49px] z-50 w-60 transtone-y-2 border border-stone-200 bg-white p-2 opacity-0 shadow-xl shadow-stone-900/10 transition-all group-hover:visible group-hover:transtone-y-0 group-hover:opacity-100">{item.children.map((child) => <button key={child.label} onClick={() => navigate(child.page)} className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm text-stone-600 hover:bg-stone-50 hover:text-[#8d1c2f]">{child.label}<ChevronRight className="h-4 w-4" /></button>)}</div>}</div>)}</div><button onClick={() => navigate("results")} className="flex h-12 items-center gap-2 border-b-2 border-[#8d1c2f] px-4 text-[13px] font-bold text-[#8d1c2f]"><Search className="h-4 w-4" /> Check result</button></div>
-      <AnimatePresence>{mobileOpen && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-stone-100 bg-white lg:hidden"><div className="max-h-[72vh] overflow-y-auto p-4">{navItems.map((item) => <button key={item.label} onClick={() => { navigate(item.page); setMobileOpen(false); }} className="flex w-full items-center justify-between border-b border-stone-100 px-2 py-3.5 text-left text-sm font-semibold text-stone-700">{item.label}<ChevronRight className="h-4 w-4" /></button>)}<Button onClick={() => { navigate("results"); setMobileOpen(false); }} className="mt-4 w-full">Check Your Result</Button></div></motion.div>}</AnimatePresence></nav></>;
+      <AnimatePresence>{mobileOpen && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-stone-100 bg-white lg:hidden"><div className="max-h-[72vh] overflow-y-auto p-4">{navItems.map((item) => <button key={item.label} onClick={() => { navigate(item.page); setMobileOpen(false); }} className="flex w-full items-center justify-between border-b border-stone-100 px-2 py-3.5 text-left text-sm font-semibold text-stone-700">{item.label}<ChevronRight className="h-4 w-4" /></button>)}<Button onClick={() => { navigate("results"); setMobileOpen(false); }} className="mt-4 w-full">Check Your Result</Button><Button onClick={() => { navigate("admin-dashboard"); setMobileOpen(false); }} variant="secondary" className="mt-3 w-full"><LockKeyhole className="h-4 w-4" /> Admin Login (Secured)</Button></div></motion.div>}</AnimatePresence></nav></>;
 }
 
 function Footer({ navigate }: { navigate: Navigate }) {
@@ -328,7 +328,11 @@ function ProgrammesPage({ navigate }: { navigate: Navigate }) {
     text: p.text
   })) : programmes;
 
-  return <><PageHero title="Flexible pathways for every learner" text="Explore structured academic and vocational programmes supported by transparent assessment and learner services." label="Programmes" image={images.students} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><div className="mb-10 flex flex-wrap gap-2">{["All Programmes", "Academic", "Vocational", "Skill Development"].map((item, index) => <button className={"rounded-full px-4 py-2 text-xs font-semibold " + (index === 0 ? "bg-[#8d1c2f] text-white" : "border border-stone-300 bg-white text-stone-600 hover:border-[#8d1c2f]")} key={item}>{item}</button>)}</div><div className="grid gap-10 md:grid-cols-2">{displayProgs.map((item) => <article className="group grid border-b border-stone-200 pb-8 sm:grid-cols-[190px_1fr]" key={item.title}><div className="overflow-hidden"><img src={item.image} alt="" className="aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105" /></div><div className="pt-5 sm:pl-6 sm:pt-0"><div className="text-[11px] font-bold uppercase tracking-wider text-[#d85d05]">Academic Programme</div><h2 className="mt-2 text-xl font-semibold text-[#4a131c]">{item.title}</h2><p className="mt-2 text-sm leading-6 text-stone-600">{item.text}</p><div className="mt-4 grid grid-cols-2 gap-3 text-xs"><span><b className="block text-stone-800">Eligibility</b><span className="text-stone-500">{item.eligibility}</span></span><span><b className="block text-stone-800">Duration</b><span className="text-stone-500">{item.duration}</span></span></div><Button variant="ghost" className="mt-4 px-0">View programme details <ArrowRight className="h-4 w-4" /></Button></div></article>)}</div></div></main><HelpCta navigate={navigate} /></>;
+  return <><PageHero title="Flexible pathways for every learner" text="Explore structured academic and vocational programmes supported by transparent assessment and learner services." label="Programmes" image={images.students} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><div className="mb-10 flex flex-wrap gap-2">{["All Programmes", "Academic", "Vocational", "Skill Development"].map((item, index) => <button className={"rounded-full px-4 py-2 text-xs font-semibold " + (index === 0 ? "bg-[#8d1c2f] text-white" : "border border-stone-300 bg-white text-stone-600 hover:border-[#8d1c2f]")} key={item}>{item}</button>)}</div><div className="grid gap-10 md:grid-cols-2">{displayProgs.map((item) => <article className="group grid border-b border-stone-200 pb-8 sm:grid-cols-[190px_1fr]" key={item.title}><div className="overflow-hidden"><img src={item.image} alt="" className="aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105" /></div><div className="pt-5 sm:pl-6 sm:pt-0"><div className="text-[11px] font-bold uppercase tracking-wider text-[#d85d05]">Academic Programme</div><h2 className="mt-2 text-xl font-semibold text-[#4a131c]">{item.title}</h2><p className="mt-2 text-sm leading-6 text-stone-600">{item.text}</p><div className="mt-4 grid grid-cols-2 gap-3 text-xs"><span><b className="block text-stone-800">Eligibility</b><span className="text-stone-500">{item.eligibility}</span></span><span><b className="block text-stone-800">Duration</b><span className="text-stone-500">{item.duration}</span></span></div><Button onClick={() => navigate("programme-details")} variant="ghost" className="mt-4 px-0">View programme details <ArrowRight className="h-4 w-4" /></Button></div></article>)}</div></div></main><HelpCta navigate={navigate} /></>;
+}
+
+function ProgrammeDetailsPage({ navigate }: { navigate: Navigate }) {
+  return <><PageHero title="Secondary Education" text="A structured academic pathway designed to build a strong foundation in core subjects." label="Programme Details" image={images.campus} navigate={navigate} /><main className="py-12 md:py-16"><div className="mx-auto max-w-[1000px] px-5 md:px-8"><div className="prose max-w-none text-stone-700"><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Programme Overview</h2><p>The Secondary Education programme offers a balanced curriculum with core subjects including languages, mathematics, sciences, and social studies. Designed for comprehensive development, the programme supports higher education progression and career readiness.</p><div className="my-8 grid gap-6 sm:grid-cols-3 border-y border-stone-200 py-8"><div><h3 className="font-semibold text-stone-900">Eligibility</h3><p className="text-sm mt-1">Class VIII pass or equivalent</p></div><div><h3 className="font-semibold text-stone-900">Duration</h3><p className="text-sm mt-1">2 academic years</p></div><div><h3 className="font-semibold text-stone-900">Assessment</h3><p className="text-sm mt-1">Annual examination</p></div></div><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Curriculum Structure</h2><p>The academic structure is divided into mandatory and elective subjects allowing students to tailor their learning experience.</p><ul className="list-disc pl-5 mb-8"><li>Two language papers (One regional/national, one secondary)</li><li>Mathematics and logic</li><li>General Science (Physics, Chemistry, Biology)</li><li>Social Science (History, Geography, Civics)</li><li>One skill-based elective</li></ul><Button onClick={() => navigate("student-login")} className="mt-4">Apply for Admission <ArrowRight className="h-4 w-4" /></Button></div></div></main><HelpCta navigate={navigate} /></>;
 }
 
 function ExaminationsPage({ navigate }: { navigate: Navigate }) {
@@ -2201,6 +2205,7 @@ function renderPublicPage(page: Page, navigate: Navigate, notify: (message: stri
     case "about": return <AboutPage navigate={navigate} />;
     case "recognition": return <RecognitionPage navigate={navigate} />;
     case "programmes": return <ProgrammesPage navigate={navigate} />;
+    case "programme-details": return <ProgrammeDetailsPage navigate={navigate} />;
     case "examinations": return <ExaminationsPage navigate={navigate} />;
     case "results": return <ResultsPage navigate={navigate} />;
     case "result-detail": return <ResultDetailPage navigate={navigate} notify={notify} />;
@@ -2220,7 +2225,7 @@ function renderPublicPage(page: Page, navigate: Navigate, notify: (message: stri
 }
 
 const validPages: Page[] = [
-  "home", "about", "recognition", "programmes", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result", "admin-programme-dashboard", "system-result-view", "student-login",
+  "home", "about", "recognition", "programmes", "programme-details", "examinations", "results", "result-detail", "verification", "result-archive", "news", "news-detail", "notices", "downloads", "student-zone", "services", "gallery", "contact", "admin-dashboard", "admin-results", "admin-import", "admin-students", "admin-exams", "admin-news", "admin-notices", "admin-downloads", "admin-programmes", "admin-gallery", "admin-recognition", "admin-messages", "admin-settings", "admin-add-result", "admin-programme-dashboard", "system-result-view", "student-login",
 ];
 
 function pageFromHash(): Page {
@@ -4597,8 +4602,73 @@ function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeI
 }
 
 
+function AdminLoginPage({ onLogin, navigate }: { onLogin: () => void, navigate: Navigate }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      if (res.ok) {
+        onLogin();
+      } else {
+        const data = await res.json();
+        setError(data.message || "Invalid credentials");
+      }
+    } catch (err) {
+      setError("An error occurred during login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return <div className="min-h-screen bg-[#faf5f6] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+      <div className="flex justify-center mb-6">
+        <Logo compact />
+      </div>
+      <h2 className="text-center text-3xl font-extrabold text-[#4a131c]">
+        Admin Portal
+      </h2>
+      <p className="mt-2 text-center text-sm text-stone-600">
+        Sign in with your credentials to access the dashboard
+      </p>
+    </div>
+
+    <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-stone-200">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <Field label="Username" required value={username} onChange={setUsername} />
+          <Field label="Password" required type="password" value={password} onChange={setPassword} />
+          
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+
+          <div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </div>
+        </form>
+        <div className="mt-6 text-center">
+           <button onClick={() => navigate("home")} className="text-sm text-stone-500 hover:text-stone-700">Return to home</button>
+        </div>
+      </div>
+    </div>
+  </div>;
+}
+
 export default function App() {
   const [page, setPage] = useState<Page>("home");
+  const [adminAuth, setAdminAuth] = useState(false);
   const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
@@ -4681,7 +4751,7 @@ export default function App() {
   const isSystem = page.startsWith("system-");
   const isPortal = page === "student-zone";
   return <CmsContext.Provider value={{ cmsData, fetchCms }}>
-    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? <AdminShell page={page} navigate={navigate} notify={notify} selectedProgrammeId={selectedProgrammeId} setSelectedProgrammeId={setSelectedProgrammeId} /> : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
+    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? (adminAuth ? <AdminShell page={page} navigate={navigate} notify={notify} selectedProgrammeId={selectedProgrammeId} setSelectedProgrammeId={setSelectedProgrammeId} /> : <AdminLoginPage onLogin={() => setAdminAuth(true)} navigate={navigate} />) : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
     <AnimatePresence>{toast && <motion.div role="status" initial={{ opacity: 0, y: 16, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 8, x: "-50%" }} className="fixed bottom-6 left-1/2 z-[120] flex min-w-[280px] items-center gap-3 rounded-lg bg-[#4a131c] px-4 py-3 text-sm font-medium text-white shadow-2xl"><CheckCircle2 className="h-5 w-5 text-lime-400" />{String(toast)}</motion.div>}</AnimatePresence>
   </CmsContext.Provider>;
 }
