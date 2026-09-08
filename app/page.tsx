@@ -172,7 +172,7 @@ function ResultSearch({ navigate, compact = false }: { navigate: Navigate; compa
 
 function RecognitionSection({ navigate }: { navigate: Navigate }) {
   const items = ["Recognition Authority", "Registration Authority", "Academic Quality Body", "Digital Services Authority"];
-  return <section className="bg-[#fbf4f5] py-10 md:py-16"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><SectionHeading eyebrow="Institutional Trust" title="Recognition & approvals" text="Organized access to official recognition records and supporting documents." action={<Button variant="secondary" onClick={() => navigate("recognition")}>View document archive</Button>} /><div className="grid border border-stone-200 bg-white md:grid-cols-2 lg:grid-cols-4">{items.map((name, index) => <button onClick={() => navigate("recognition")} key={name} className="group border-b border-stone-200 p-6 text-left last:border-b-0 md:border-r lg:border-b-0"><div className="grid h-12 w-12 place-items-center rounded-full border border-stone-100 bg-stone-50 text-[#8d1c2f]"><Award className="h-6 w-6" /></div><h3 className="mt-5 font-semibold text-[#4a131c]">{name}</h3><p className="mt-2 text-xs leading-5 text-stone-500">Official registration record<br />Reference No. NAB/REG/0{index + 1}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#8d1c2f]">View document <ExternalLink className="h-3.5 w-3.5" /></span></button>)}</div></div></section>;
+  return <section className="bg-[#fbf4f5] py-10 md:py-16"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><SectionHeading eyebrow="Institutional Trust" title="Recognition & approvals" text="Organized access to official recognition records and supporting documents." action={<Button variant="secondary" onClick={() => navigate("recognition")}>View document archive</Button>} /><div className="grid border border-stone-200 bg-white md:grid-cols-2 lg:grid-cols-4">{items.map((name, index) => <button onClick={() => navigate("recognition")} key={name} className="group border-b border-stone-200 p-6 text-left last:border-b-0 md:border-r lg:border-b-0"><div className="grid h-12 w-12 place-items-center rounded-full border border-stone-100 bg-stone-50 text-[#8d1c2f]"><Award className="h-6 w-6" /></div><h3 className="mt-5 font-semibold text-[#4a131c]">{name}</h3><p className="mt-2 text-xs leading-5 text-stone-500">Official registration record<br />Reference No. THAR/REG/0{index + 1}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#8d1c2f]">View document <ExternalLink className="h-3.5 w-3.5" /></span></button>)}</div></div></section>;
 }
 
 function StudentServices({ navigate }: { navigate: Navigate }) {
@@ -360,8 +360,8 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
     if (data) setResultData(JSON.parse(data));
     else navigate("results");
   }, []);
-  if (!resultData) return <div className="min-h-screen grid place-items-center"><LoaderCircle className="h-8 w-8 animate-spin text-[#8d1c2f]" /></div>;
   const [downloading, setDownloading] = useState(false);
+  if (!resultData) return <div className="min-h-screen grid place-items-center"><LoaderCircle className="h-8 w-8 animate-spin text-[#8d1c2f]" /></div>;
   function download() { setDownloading(true); window.setTimeout(() => { setDownloading(false); notify("Provisional marksheet prepared for download."); }, 900); }
   
   const subjects = [
@@ -386,10 +386,10 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
       
       <div className="grid gap-x-10 gap-y-4 py-8 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          ["Student Name", "{resultData.studentName}"], ["Father's Name", "{resultData.fatherName}"], ["Date of Birth", "{new Date(resultData.dob).toLocaleDateString()}"], 
-          ["Enrollment Number", "{resultData.enrollmentNumber}"], ["Roll Number", "{resultData.rollNumber}"], ["Programme", "Senior Secondary"], 
+          ["Student Name", resultData.studentName || "N/A"], ["Father's Name", resultData.fatherName || "N/A"], ["Date of Birth", resultData.dob ? new Date(resultData.dob).toLocaleDateString("en-GB") : "N/A"], 
+          ["Enrollment Number", resultData.enrollmentNumber || "N/A"], ["Roll Number", resultData.rollNumber || "N/A"], ["Programme", "Senior Secondary"], 
           ["Examination", "June Public Examination"], ["Year", "2026"], ["Result Date", "17 August 2026"]
-        ].map(([label, value]) => <div key={label} className="border-b border-stone-100 pb-2"><div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label}</div><div className="mt-1 text-sm font-semibold text-stone-800">{value}</div></div>)}
+        ].map(([label, value]) => <div key={label as string} className="border-b border-stone-100 pb-2"><div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label as string}</div><div className="mt-1 text-sm font-semibold text-stone-800">{value as React.ReactNode}</div></div>)}
       </div>
       
       <h2 className="mb-4 text-lg font-semibold text-[#4a131c]">Academic Performance</h2>
@@ -409,22 +409,38 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
             </tr>
           </thead>
           <tbody>
-            {(resultData.subjects || []).map((row: any) => 
-              <tr key={row.sNo} className="border-t border-stone-200">
-                <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-500">{row.sNo}</td>
+            {(resultData.subjects || []).filter((s: any) => s.name && !s.name.startsWith('__EMPTY')).map((row: any, idx: number) => 
+              <tr key={idx} className="border-t border-stone-200">
+                <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-500">{idx + 1}</td>
                 <td className="px-4 py-3 border-r border-stone-200 font-semibold text-stone-800">{row.name}</td>
                 <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-600">{row.max}</td>
                 <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-600">{row.min}</td>
                 <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-800">{row.th}</td>
                 <td className="px-4 py-3 border-r border-stone-200 text-center text-stone-800">{row.pr}</td>
                 <td className="px-4 py-3 border-r border-stone-200 text-center font-bold text-[#4a131c]">{row.total}</td>
-                <td className="px-4 py-3 text-center font-bold">{row.grade}</td>
+                <td className="px-4 py-3 text-center font-bold">
+                  {(() => {
+                    const pct = ((Number(row.total) || 0) / (Number(row.max) || 100)) * 100;
+                    let calculatedGrade = 'F';
+                    if (pct >= 91) calculatedGrade = 'A+';
+                    else if (pct >= 81) calculatedGrade = 'A';
+                    else if (pct >= 71) calculatedGrade = 'B+';
+                    else if (pct >= 61) calculatedGrade = 'B';
+                    else if (pct >= 51) calculatedGrade = 'C+';
+                    else if (pct >= 41) calculatedGrade = 'C';
+                    else if (pct >= 33) calculatedGrade = 'D';
+                    
+                    return (row.grade && row.grade !== "PASS" && row.grade !== "FAIL" && row.grade.length <= 2) ? row.grade : calculatedGrade;
+                  })()}
+                </td>
               </tr>
             )}
             
             <tr className="border-t-2 border-stone-300 bg-[#fdf5f6]">
               <td colSpan={2} className="px-4 py-4 text-right font-bold text-stone-800 border-r border-stone-300">Grand Total</td>
-              <td className="px-4 py-4 text-center font-bold text-stone-800 border-r border-stone-300">500</td>
+              <td className="px-4 py-4 text-center font-bold text-stone-800 border-r border-stone-300">
+                {(resultData.subjects || []).filter((s: any) => s.name && !s.name.startsWith('__EMPTY')).reduce((acc: number, curr: any) => acc + (Number(curr.max) || 0), 0)}
+              </td>
               <td colSpan={3} className="border-r border-stone-300"></td>
               <td className="px-4 py-4 text-center font-bold text-xl text-[#8d1c2f] border-r border-stone-300">{resultData.grandTotal}</td>
               <td></td>
@@ -466,7 +482,7 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
 function VerificationPage({ navigate }: { navigate: Navigate }) {
   const [verified, setVerified] = useState(false); const [loading, setLoading] = useState(false);
   function verify(event: FormEvent) { event.preventDefault(); setLoading(true); window.setTimeout(() => { setLoading(false); setVerified(true); }, 900); }
-  return <><PageHero title="Verify result or certificate" text="Enter the document details below to perform secure verification of an academic record." label="Document Verification" navigate={navigate} /><main className="bg-[#fcf7f8] py-8 md:py-12"><div className="mx-auto max-w-[900px] px-5 md:px-8"><form onSubmit={verify} className="border border-stone-200 bg-white p-6 md:p-9"><div className="grid gap-5 md:grid-cols-2"><SelectField label="Document Type" required options={["Result", "Marksheet", "Certificate", "Migration Certificate"]} /><Field label="Roll Number" required placeholder="Enter enrollment number" /><Field label="Certificate Number" required placeholder="Enter certificate number" /><Field label="Verification Code" required placeholder="e.g. NAB-R26-1842-0098" /></div><Button type="submit" disabled={loading} className="mt-7 w-full sm:w-auto">{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} {loading ? "Verifying Document..." : "Verify Document"}</Button></form><AnimatePresence>{verified && <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-6 border border-lime-200 bg-white"><div className="flex items-center gap-3 bg-lime-600 p-5 text-white"><CheckCircle2 className="h-7 w-7" /><div><div className="text-xs font-bold uppercase tracking-wider text-lime-100">Verification complete</div><h2 className="text-xl font-semibold">Document Verified</h2></div></div><div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">{[["Student", "{resultData.studentName}"], ["Document", "Senior Secondary Marksheet"], ["Roll Number", "{resultData.enrollmentNumber}"], ["Issue Date", "17 August 2026"], ["Programme", "Senior Secondary"], ["Verification ID", "NAB-R26-1842-0098"]].map(([label, value]) => <div key={label}><span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label}</span><b className="mt-1 block text-sm text-stone-800">{value}</b></div>)}</div></motion.section>}</AnimatePresence></div></main></>;
+  return <><PageHero title="Verify result or certificate" text="Enter the document details below to perform secure verification of an academic record." label="Document Verification" navigate={navigate} /><main className="bg-[#fcf7f8] py-8 md:py-12"><div className="mx-auto max-w-[900px] px-5 md:px-8"><form onSubmit={verify} className="border border-stone-200 bg-white p-6 md:p-9"><div className="grid gap-5 md:grid-cols-2"><Field label="Roll Number" required placeholder="Enter roll number" /><Field label="Certificate Number" required placeholder="Enter certificate number" /><Field label="Date of Birth" required type="date" /></div><Button type="submit" disabled={loading} className="mt-7 w-full sm:w-auto">{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} {loading ? "Verifying Document..." : "Verify Document"}</Button></form><AnimatePresence>{verified && <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-6 border border-lime-200 bg-white"><div className="flex items-center gap-3 bg-lime-600 p-5 text-white"><CheckCircle2 className="h-7 w-7" /><div><div className="text-xs font-bold uppercase tracking-wider text-lime-100">Verification complete</div><h2 className="text-xl font-semibold">Document Verified</h2></div></div><div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">{[["Student", "{resultData.studentName}"], ["Document", "Senior Secondary Marksheet"], ["Roll Number", "{resultData.enrollmentNumber}"], ["Issue Date", "17 August 2026"], ["Programme", "Senior Secondary"], ["Verification ID", "THAR-R26-1842-0098"]].map(([label, value]) => <div key={label}><span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label}</span><b className="mt-1 block text-sm text-stone-800">{value}</b></div>)}</div></motion.section>}</AnimatePresence></div></main></>;
 }
 
 function ResultArchivePage({ navigate }: { navigate: Navigate }) {

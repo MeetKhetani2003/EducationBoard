@@ -82,13 +82,13 @@ function mapColumns(row: Record<string, any>) {
     // Auto calculate grade based on percentage
     const pct = (totalMarks / maxMarks) * 100;
     let autoGrade = 'F';
-    if (pct >= 90) autoGrade = 'A+';
-    else if (pct >= 80) autoGrade = 'A';
-    else if (pct >= 70) autoGrade = 'B+';
-    else if (pct >= 60) autoGrade = 'B';
-    else if (pct >= 50) autoGrade = 'C';
-    else if (pct > 33) autoGrade = 'D';
-    else if (pct === 33) autoGrade = 'E';
+    if (pct >= 91) autoGrade = 'A+';
+    else if (pct >= 81) autoGrade = 'A';
+    else if (pct >= 71) autoGrade = 'B+';
+    else if (pct >= 61) autoGrade = 'B';
+    else if (pct >= 51) autoGrade = 'C+';
+    else if (pct >= 41) autoGrade = 'C';
+    else if (pct >= 33) autoGrade = 'D';
 
     subjects.push({
       sNo: String(subjects.length + 1),
@@ -107,11 +107,11 @@ function mapColumns(row: Record<string, any>) {
   const calcStatus = status ? String(status).toUpperCase().includes('PASS') ? 'PASS' : String(status).toUpperCase() : (calcPercent >= 33 ? 'PASS' : 'FAIL');
 
   return {
-    enrollmentNumber: enrollment ? String(enrollment).trim() : null,
+    enrollmentNumber: enrollment ? String(enrollment).trim() : (roll ? String(roll).trim() : null),
     rollNumber: roll ? String(roll).trim() : (enrollment ? String(enrollment).trim() : null),
     studentName: name ? String(name).trim() : null,
     fatherName: father ? String(father).trim() : 'N/A',
-    dob: dob || null,
+    dob: dob || new Date('2000-01-01'),
     programme: programme ? String(programme).trim() : 'Senior Secondary',
     examination: exam ? String(exam).trim() : 'Public Examination',
     examYear: year ? String(year).trim() : new Date().getFullYear().toString(),
@@ -184,9 +184,13 @@ export async function GET(request: Request) {
     }
 
     // Public: search by enrollment + DOB
+    const searchDate = new Date(dobString);
     const result = await Result.findOne({
       enrollmentNumber: enrollmentNumber.trim(),
-      dob: { $gte: new Date(new Date(dobString).setHours(0,0,0,0)), $lte: new Date(new Date(dobString).setHours(23,59,59,999)) }
+      dob: { 
+        $gte: new Date(searchDate.getTime() - 24 * 60 * 60 * 1000), 
+        $lte: new Date(searchDate.getTime() + 24 * 60 * 60 * 1000) 
+      }
     });
 
     if (!result) {
@@ -265,18 +269,18 @@ export async function POST(request: Request) {
         const errors: string[] = [];
 
         for (const row of data) {
-          if (!row.enrollmentNumber || !row.studentName) {
+          if (!(row.enrollmentNumber || row.rollNumber) || !row.studentName) {
             skipped++;
-            errors.push('Row missing enrollment or student name');
+            errors.push('Row missing enrollment/roll or student name');
             continue;
           }
           try {
             const resultData = {
-              enrollmentNumber: String(row.enrollmentNumber).trim(),
+              enrollmentNumber: String(row.enrollmentNumber || row.rollNumber).trim(),
               rollNumber: String(row.rollNumber || row.enrollmentNumber).trim(),
               studentName: String(row.studentName).trim(),
               fatherName: String(row.fatherName || 'N/A').trim(),
-              dob: new Date(row.dob),
+              dob: row.dob ? new Date(row.dob) : new Date('2000-01-01'),
               programme: String(row.programme || 'Senior Secondary'),
               examination: String(row.examination || 'Public Examination'),
               examYear: String(row.examYear || new Date().getFullYear()),
