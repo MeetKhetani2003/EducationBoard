@@ -1,5 +1,6 @@
 "use client";
 import React, { FormEvent, useEffect, useState, useRef, useContext } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Accessibility, AlertCircle, ArrowDownToLine, ArrowLeft, ArrowRight, Award,
@@ -4682,8 +4683,9 @@ function AdminLoginPage({ onLogin, navigate }: { onLogin: () => void, navigate: 
   </div>;
 }
 
-export default function App() {
-  const [page, setPage] = useState<Page>("home");
+export default function App({ initialPage = "home" }: { initialPage?: Page }) {
+  const router = useRouter();
+  const [page, setPage] = useState<Page>(initialPage);
   const [adminAuth, setAdminAuth] = useState(false);
   const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
@@ -4702,58 +4704,16 @@ export default function App() {
   }, []);
 
   useEffect(() => { fetchCms(); }, [fetchCms]);
-  useEffect(() => {
-    setPage(pageFromHash());
-    const syncPage = () => setPage(pageFromHash());
-    window.addEventListener("popstate", syncPage);
-    return () => window.removeEventListener("popstate", syncPage);
-  }, []);
 
   useEffect(() => {
-    const label = [...adminNav, ...navItems].find((item) => item.page === page)?.label || "Official Portal";
-    const title = `${label} | Thar Board of School and Technical Education`;
-    document.title = title;
-
-    const descriptions: Record<string, string> = {
-      "home": "Official portal for Thar Board of School and Technical Education. Access examination results, admit cards, student services, and academic programmes.",
-      "about": "Learn about the Thar Board of School and Technical Education, our mission, vision, and guiding principles.",
-      "contact": "Contact the Thar Board of School and Technical Education for student services, examination support, and result queries.",
-      "programmes": "Explore academic programmes offered by the Thar Board of School and Technical Education.",
-      "results": "Check your examination results online. Enter your enrollment number and registration number to view your results."
-    };
-    
-    const desc = descriptions[page as string] || descriptions["home"];
-
-    const setMeta = (name: string, content: string, isProperty = false) => {
-      const attr = isProperty ? 'property' : 'name';
-      let meta = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute(attr, name);
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute('content', content);
-    };
-
-    setMeta('description', desc);
-    setMeta('og:title', title, true);
-    setMeta('og:description', desc, true);
-    setMeta('og:url', `https://tharboard.in/#${page}`, true);
-    setMeta('og:site_name', 'Thar Board of School and Technical Education', true);
-    setMeta('twitter:title', title);
-    setMeta('twitter:description', desc);
-    
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonical);
-    }
-    canonical.setAttribute('href', `https://tharboard.in/#${page}`);
-  }, [page]);
+    setPage(initialPage);
+  }, [initialPage]);
 
   function navigate(next: Page) {
-    if (next !== page) window.history.pushState({}, "", `#${next}`);
+    if (next !== page) {
+      if (next === "home") router.push("/");
+      else router.push("/" + next);
+    }
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
