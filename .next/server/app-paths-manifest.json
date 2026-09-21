@@ -1,6 +1,8 @@
 {
+  "/[[...route]]/page": "app/[[...route]]/page.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/admin-login/route": "app/api/admin-login/route.js",
   "/api/admin/login/route": "app/api/admin/login/route.js",
   "/api/cms/route": "app/api/cms/route.js",
   "/api/contact/route": "app/api/contact/route.js",
@@ -19,7 +21,6 @@
   "/api/students/route": "app/api/students/route.js",
   "/api/subjects/route": "app/api/subjects/route.js",
   "/icon.png/route": "app/icon.png/route.js",
-  "/page": "app/page.js",
   "/robots.txt/route": "app/robots.txt/route.js",
   "/sitemap.xml/route": "app/sitemap.xml/route.js"
 }
