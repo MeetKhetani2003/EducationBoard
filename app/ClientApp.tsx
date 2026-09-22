@@ -381,15 +381,15 @@ function ResultDetailPage({ navigate, notify }: { navigate: Navigate; notify: (m
     <div className="p-6 md:p-8">
       <div className="border-b border-stone-200 pb-7 text-center">
         <div className="text-xs font-bold uppercase tracking-[.18em] text-stone-500">Statement of Marks</div>
-        <h1 className="mt-2 text-2xl font-semibold text-[#4a131c]">Senior Secondary Examination 2026</h1>
+        <h1 className="mt-2 text-2xl font-semibold text-[#4a131c]">{resultData.programme || "Secondary"} Examination {resultData.examYear || "2026"}</h1>
         <p className="mt-1 text-sm text-stone-500">Provisional online result</p>
       </div>
       
       <div className="grid gap-x-10 gap-y-4 py-8 sm:grid-cols-2 lg:grid-cols-3">
         {[
           ["Student Name", resultData.studentName || "N/A"], ["Father's Name", resultData.fatherName || "N/A"], ["Date of Birth", resultData.dob ? new Date(resultData.dob).toLocaleDateString("en-GB") : "N/A"], 
-          ["Enrollment Number", resultData.enrollmentNumber || "N/A"], ["Roll Number", resultData.rollNumber || "N/A"], ["Programme", "Senior Secondary"], 
-          ["Examination", "June Public Examination"], ["Year", "2026"], ["Result Date", "17 August 2026"]
+          ["Enrollment Number", resultData.enrollmentNumber || "N/A"], ["Roll Number", resultData.rollNumber || "N/A"], ["Programme", resultData.programme || "N/A"], 
+          ["Examination", resultData.examination || "N/A"], ["Year", resultData.examYear || "N/A"], ["Result Date", resultData.resultDate ? new Date(resultData.resultDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "N/A"]
         ].map(([label, value]) => <div key={label as string} className="border-b border-stone-100 pb-2"><div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">{label as string}</div><div className="mt-1 text-sm font-semibold text-stone-800">{value as React.ReactNode}</div></div>)}
       </div>
       

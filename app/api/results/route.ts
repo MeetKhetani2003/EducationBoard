@@ -185,13 +185,30 @@ export async function GET(request: Request) {
 
     // Public: search by enrollment + DOB
     const searchDate = new Date(dobString);
-    const result = await Result.findOne({
+    let result = await Result.findOne({
       enrollmentNumber: enrollmentNumber.trim(),
       dob: { 
         $gte: new Date(searchDate.getTime() - 24 * 60 * 60 * 1000), 
         $lte: new Date(searchDate.getTime() + 24 * 60 * 60 * 1000) 
       }
     });
+
+    // Fallback: Check if the date was stored with swapped month/day due to Excel import (DD/MM vs MM/DD)
+    if (!result) {
+      const parts = dobString.split('-'); // e.g., "1976-11-09"
+      if (parts.length === 3) {
+        const swappedDate = new Date(`${parts[0]}-${parts[2]}-${parts[1]}`); // e.g., "1976-09-11"
+        if (!isNaN(swappedDate.getTime())) {
+          result = await Result.findOne({
+            enrollmentNumber: enrollmentNumber.trim(),
+            dob: { 
+              $gte: new Date(swappedDate.getTime() - 24 * 60 * 60 * 1000), 
+              $lte: new Date(swappedDate.getTime() + 24 * 60 * 60 * 1000) 
+            }
+          });
+        }
+      }
+    }
 
     if (!result) {
       return NextResponse.json({ error: 'Result not found. Please verify your Enrollment Number and Date of Birth.' }, { status: 404 });
