@@ -51,6 +51,34 @@ export async function POST(req: Request) {
 
     await transporter.sendMail(mailOptions);
 
+    // Send an auto-reply confirmation to the user who submitted the form
+    if (email) {
+      const autoReplyOptions = {
+        from: emailUser,
+        to: email,
+        subject: `We received your inquiry: ${subject || "No Subject"}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <h2 style="color: #8d1c2f; border-bottom: 2px solid #8d1c2f; padding-bottom: 10px;">Inquiry Received</h2>
+            <p>Dear ${name || "Student"},</p>
+            <p>Thank you for contacting the National Academic Board. We have successfully received your message and our team will get back to you shortly.</p>
+            <div style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #8d1c2f;">
+              <h4 style="margin-top: 0;">Your Message:</h4>
+              <p style="white-space: pre-wrap; margin-bottom: 0;">${message || "No message provided."}</p>
+            </div>
+            <p style="font-size: 12px; color: #777; margin-top: 30px;">This is an automated confirmation email. Please do not reply directly to this message.</p>
+          </div>
+        `,
+      };
+      
+      try {
+        await transporter.sendMail(autoReplyOptions);
+      } catch (autoReplyError) {
+        console.error("Failed to send auto-reply to user:", autoReplyError);
+        // We don't fail the request if just the auto-reply fails
+      }
+    }
+
     return NextResponse.json({ success: true, message: "Email sent successfully!" });
   } catch (error) {
     console.error("Failed to send email:", error);

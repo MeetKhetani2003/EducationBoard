@@ -638,7 +638,13 @@ function GalleryPage({ navigate }: { navigate: Navigate }) {
 
 function ContactPage({ navigate }: { navigate: Navigate }) {
   const [sent, setSent] = useState(false); const [sending, setSending] = useState(false);
-  function submit(e: FormEvent) { e.preventDefault(); setSending(true); window.setTimeout(() => { setSending(false); setSent(true); }, 900); }
+  const [error, setError] = useState("");
+  const [name, setName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [subject, setSubject] = useState("Result Query");
+  const [message, setMessage] = useState("");
+
   const { cmsData } = useContext(CmsContext) as any;
   const phone = cmsData["contact.phone"] || "+91 8869844584";
   const email = cmsData["contact.email"] || "help@tbste.edu";
@@ -646,7 +652,35 @@ function ContactPage({ navigate }: { navigate: Navigate }) {
   const addrs = cmsData["contact.addresses"] || ["Centre of India District-Etawah, Uttar Pradesh"];
   const primaryAddr = addrs[0];
 
-  return <><PageHero title="Contact the Board" text="Connect with our student services and examination support teams." label="Contact Us" image={images.conversation} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[.8fr_1.2fr]"><section><SectionHeading eyebrow="Get in Touch" title="We are here to help" text="For result queries, keep your enrollment number and registration number available when contacting support." /><div className="mt-7 space-y-5">{[[MapPin, "Office Address", primaryAddr], [Phone, "Examination Helpline", phone], [Mail, "Email", email], [Clock3, "Working Hours", hours]].map(([Icon, label, value]) => { const I = Icon as LucideIcon; return <div key={label as string} className="flex gap-4"><I className="mt-1 h-5 w-5 shrink-0 text-[#8d1c2f]" /><div><h3 className="text-sm font-semibold text-[#4a131c]">{label as string}</h3><p className="mt-1 max-w-xs text-sm leading-6 text-stone-600">{value as string}</p></div></div>; })}</div></section><form onSubmit={submit} className="border border-stone-200 bg-[#fcf7f8] p-6 md:p-8"><h2 className="text-xl font-semibold text-[#4a131c]">Send a message</h2><div className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Full Name" required placeholder="Your full name" /><Field label="Email" required type="email" placeholder="you@example.com" /><Field label="Phone" type="tel" pattern="[0-9]{10}" placeholder="10-digit mobile number" /><SelectField label="Subject" options={["Result Query", "Examination Query", "Document Service", "Admission", "General"]} /></div><label className="mt-5 block text-sm font-semibold text-stone-700">Message<textarea required rows={5} placeholder="Describe how we can help" className="mt-2 w-full rounded-lg border border-stone-300 bg-white p-3.5 text-sm outline-none focus:border-[#8d1c2f]" /></label><Button type="submit" disabled={sending} className="mt-5">{sending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {sending ? "Sending..." : "Send Message"}</Button>{sent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 bg-lime-50 p-3 text-sm font-medium text-lime-700"><CheckCircle2 className="h-5 w-5" /> Your message has been submitted successfully.</motion.div>}</form></div><div className="mx-auto mt-14 max-w-[1160px] px-5 md:px-8"><div className="relative grid min-h-72 place-items-center overflow-hidden bg-[#f1e0e3]"><div className="absolute inset-0 opacity-40 [background-image:linear-gradient(#bd939a_1px,transparent_1px),linear-gradient(90deg,#bd939a_1px,transparent_1px)] [background-size:36px_36px]" /><div className="relative text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#8d1c2f] text-white shadow-lg"><MapPin className="h-6 w-6" /></span><h2 className="mt-3 font-semibold text-[#4a131c]">{primaryAddr.split(",")[0] || "Head Office"}</h2><p className="mt-1 text-xs text-stone-600">{primaryAddr.split(",").slice(1).join(",") || "India"}</p></div></div></div></main><HelpCta navigate={navigate} /></>;
+  async function submit(e: FormEvent) { 
+    e.preventDefault(); 
+    setSending(true); 
+    setError("");
+    
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email: formEmail, phone: phoneInput, subject, message })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+      setSent(true);
+      setName(""); setFormEmail(""); setPhoneInput(""); setSubject(""); setMessage("");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return <><PageHero title="Contact the Board" text="Connect with our student services and examination support teams." label="Contact Us" image={images.conversation} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto grid max-w-[1160px] gap-12 px-5 md:px-8 lg:grid-cols-[.8fr_1.2fr]"><section><SectionHeading eyebrow="Get in Touch" title="We are here to help" text="For result queries, keep your enrollment number and registration number available when contacting support." /><div className="mt-7 space-y-5">{[[MapPin, "Office Address", primaryAddr], [Phone, "Examination Helpline", phone], [Mail, "Email", email], [Clock3, "Working Hours", hours]].map(([Icon, label, value]) => { const I = Icon as LucideIcon; return <div key={label as string} className="flex gap-4"><I className="mt-1 h-5 w-5 shrink-0 text-[#8d1c2f]" /><div><h3 className="text-sm font-semibold text-[#4a131c]">{label as string}</h3><p className="mt-1 max-w-xs text-sm leading-6 text-stone-600">{value as string}</p></div></div>; })}</div></section><form onSubmit={submit} className="border border-stone-200 bg-[#fcf7f8] p-6 md:p-8"><h2 className="text-xl font-semibold text-[#4a131c]">Send a message</h2><div className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Full Name" required placeholder="Your full name" value={name} onChange={setName} /><Field label="Email" required type="email" placeholder="you@example.com" value={formEmail} onChange={setFormEmail} /><Field label="Phone" type="tel" pattern="[0-9]{10}" placeholder="10-digit mobile number" value={phoneInput} onChange={setPhoneInput} />
+  
+  <label className="block text-sm font-semibold text-stone-700">Subject<span className="relative mt-2 block"><select required value={subject} onChange={e => setSubject(e.target.value)} className="h-12 w-full appearance-none rounded-lg border border-stone-300 bg-white px-3.5 pr-10 text-sm font-normal text-stone-700 outline-none transition focus:border-[#8d1c2f] focus:ring-3 focus:ring-stone-100"><option value="" disabled>Select subject</option>{["Result Query", "Examination Query", "Document Service", "Admission", "General"].map((item) => <option key={item} value={item}>{item}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-5 w-5 text-stone-400" /></span></label>
+  
+  </div><label className="mt-5 block text-sm font-semibold text-stone-700">Message<textarea required rows={5} placeholder="Describe how we can help" value={message} onChange={e => setMessage(e.target.value)} className="mt-2 w-full rounded-lg border border-stone-300 bg-white p-3.5 text-sm outline-none focus:border-[#8d1c2f]" /></label>
+  {error && <div className="mt-4 text-sm text-red-600">{error}</div>}
+  <Button type="submit" disabled={sending} className="mt-5">{sending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {sending ? "Sending..." : "Send Message"}</Button>{sent && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 bg-lime-50 p-3 text-sm font-medium text-lime-700"><CheckCircle2 className="h-5 w-5" /> Your message has been submitted successfully.</motion.div>}</form></div><div className="mx-auto mt-14 max-w-[1160px] px-5 md:px-8"><div className="relative grid min-h-72 place-items-center overflow-hidden bg-[#f1e0e3]"><div className="absolute inset-0 opacity-40 [background-image:linear-gradient(#bd939a_1px,transparent_1px),linear-gradient(90deg,#bd939a_1px,transparent_1px)] [background-size:36px_36px]" /><div className="relative text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#8d1c2f] text-white shadow-lg"><MapPin className="h-6 w-6" /></span><h2 className="mt-3 font-semibold text-[#4a131c]">{primaryAddr.split(",")[0] || "Head Office"}</h2><p className="mt-1 text-xs text-stone-600">{primaryAddr.split(",").slice(1).join(",") || "India"}</p></div></div></div></main><HelpCta navigate={navigate} /></>;
 }
 
 const adminNav: { label: string; page: Page; icon: LucideIcon }[] = [
