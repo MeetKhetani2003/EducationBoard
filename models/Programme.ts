@@ -6,6 +6,9 @@ export interface IProgramme extends Document {
   duration: string;
   image: string;
   text: string;
+  subtitle?: string;
+  curriculumText?: string;
+  curriculumBullets?: string[];
   subjects?: Array<{
     name: string;
     max: number;
@@ -32,6 +35,9 @@ const ProgrammeSchema: Schema = new Schema({
   duration: { type: String, required: true },
   image: { type: String, required: true },
   text: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+  curriculumText: { type: String, default: '' },
+  curriculumBullets: { type: [String], default: [] },
   subjects: [{
     name: { type: String, required: true },
     max: { type: Number, default: 100 },

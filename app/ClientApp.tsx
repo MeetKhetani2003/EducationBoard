@@ -322,6 +322,7 @@ function ProgrammesPage({ navigate }: { navigate: Navigate }) {
   }, []);
 
   const displayProgs = dbProgs.length > 0 ? dbProgs.map(p => ({
+    _id: p._id,
     title: p.title,
     eligibility: p.eligibility,
     duration: p.duration,
@@ -329,11 +330,54 @@ function ProgrammesPage({ navigate }: { navigate: Navigate }) {
     text: p.text
   })) : programmes;
 
-  return <><PageHero title="Flexible pathways for every learner" text="Explore structured academic and vocational programmes supported by transparent assessment and learner services." label="Programmes" image={images.students} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><div className="mb-10 flex flex-wrap gap-2">{["All Programmes", "Academic", "Vocational", "Skill Development"].map((item, index) => <button className={"rounded-full px-4 py-2 text-xs font-semibold " + (index === 0 ? "bg-[#8d1c2f] text-white" : "border border-stone-300 bg-white text-stone-600 hover:border-[#8d1c2f]")} key={item}>{item}</button>)}</div><div className="grid gap-10 md:grid-cols-2">{displayProgs.map((item) => <article className="group grid border-b border-stone-200 pb-8 sm:grid-cols-[190px_1fr]" key={item.title}><div className="overflow-hidden"><img src={item.image} alt="" className="aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105" /></div><div className="pt-5 sm:pl-6 sm:pt-0"><div className="text-[11px] font-bold uppercase tracking-wider text-[#d85d05]">Academic Programme</div><h2 className="mt-2 text-xl font-semibold text-[#4a131c]">{item.title}</h2><p className="mt-2 text-sm leading-6 text-stone-600">{item.text}</p><div className="mt-4 grid grid-cols-2 gap-3 text-xs"><span><b className="block text-stone-800">Eligibility</b><span className="text-stone-500">{item.eligibility}</span></span><span><b className="block text-stone-800">Duration</b><span className="text-stone-500">{item.duration}</span></span></div><Button onClick={() => navigate("programme-details")} variant="ghost" className="mt-4 px-0">View programme details <ArrowRight className="h-4 w-4" /></Button></div></article>)}</div></div></main><HelpCta navigate={navigate} /></>;
+  return <><PageHero title="Flexible pathways for every learner" text="Explore structured academic and vocational programmes supported by transparent assessment and learner services." label="Programmes" image={images.students} navigate={navigate} /><main className="py-8 md:py-12"><div className="mx-auto max-w-[1240px] px-5 md:px-8"><div className="mb-10 flex flex-wrap gap-2">{["All Programmes", "Academic", "Vocational", "Skill Development"].map((item, index) => <button className={"rounded-full px-4 py-2 text-xs font-semibold " + (index === 0 ? "bg-[#8d1c2f] text-white" : "border border-stone-300 bg-white text-stone-600 hover:border-[#8d1c2f]")} key={item}>{item}</button>)}</div><div className="grid gap-10 md:grid-cols-2">{displayProgs.map((item: any) => <article className="group grid border-b border-stone-200 pb-8 sm:grid-cols-[190px_1fr]" key={item.title}><div className="overflow-hidden"><img src={item.image} alt="" className="aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105" /></div><div className="pt-5 sm:pl-6 sm:pt-0"><div className="text-[11px] font-bold uppercase tracking-wider text-[#d85d05]">Academic Programme</div><h2 className="mt-2 text-xl font-semibold text-[#4a131c]">{item.title}</h2><p className="mt-2 text-sm leading-6 text-stone-600">{item.text}</p><div className="mt-4 grid grid-cols-2 gap-3 text-xs"><span><b className="block text-stone-800">Eligibility</b><span className="text-stone-500">{item.eligibility}</span></span><span><b className="block text-stone-800">Duration</b><span className="text-stone-500">{item.duration}</span></span></div><Button onClick={() => { if(item._id) sessionStorage.setItem("currentProgrammeId", item._id); navigate("programme-details"); }} variant="ghost" className="mt-4 px-0">View programme details <ArrowRight className="h-4 w-4" /></Button></div></article>)}</div></div></main><HelpCta navigate={navigate} /></>;
 }
 
 function ProgrammeDetailsPage({ navigate }: { navigate: Navigate }) {
-  return <><PageHero title="Secondary Education" text="A structured academic pathway designed to build a strong foundation in core subjects." label="Programme Details" image={images.campus} navigate={navigate} /><main className="py-12 md:py-16"><div className="mx-auto max-w-[1000px] px-5 md:px-8"><div className="prose max-w-none text-stone-700"><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Programme Overview</h2><p>The Secondary Education programme offers a balanced curriculum with core subjects including languages, mathematics, sciences, and social studies. Designed for comprehensive development, the programme supports higher education progression and career readiness.</p><div className="my-8 grid gap-6 sm:grid-cols-3 border-y border-stone-200 py-8"><div><h3 className="font-semibold text-stone-900">Eligibility</h3><p className="text-sm mt-1">Class VIII pass or equivalent</p></div><div><h3 className="font-semibold text-stone-900">Duration</h3><p className="text-sm mt-1">2 academic years</p></div><div><h3 className="font-semibold text-stone-900">Assessment</h3><p className="text-sm mt-1">Annual examination</p></div></div><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Curriculum Structure</h2><p>The academic structure is divided into mandatory and elective subjects allowing students to tailor their learning experience.</p><ul className="list-disc pl-5 mb-8"><li>Two language papers (One regional/national, one secondary)</li><li>Mathematics and logic</li><li>General Science (Physics, Chemistry, Biology)</li><li>Social Science (History, Geography, Civics)</li><li>One skill-based elective</li></ul><Button onClick={() => navigate("student-login")} className="mt-4">Apply for Admission <ArrowRight className="h-4 w-4" /></Button></div></div></main><HelpCta navigate={navigate} /></>;
+  const [programme, setProgramme] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const id = sessionStorage.getItem("currentProgrammeId");
+    if (id) {
+      fetch(`/api/programmes?id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+          setProgramme(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <><PageHero title="Loading Programme Details..." text="Please wait while we fetch the programme information." label="Programme Details" navigate={navigate} />
+      <main className="py-12 md:py-16 text-center"><LoaderCircle className="h-8 w-8 animate-spin text-[#8d1c2f] mx-auto" /></main></>
+    );
+  }
+
+  const title = programme?.title || "Secondary Education";
+  const subtitle = programme?.subtitle || "A structured academic pathway designed to build a strong foundation in core subjects.";
+  const text = programme?.text || "The Secondary Education programme offers a balanced curriculum with core subjects including languages, mathematics, sciences, and social studies. Designed for comprehensive development, the programme supports higher education progression and career readiness.";
+  const image = programme?.image || images.campus;
+  const eligibility = programme?.eligibility || "Class VIII pass or equivalent";
+  const duration = programme?.duration || "2 academic years";
+  const curriculumText = programme?.curriculumText || "The academic structure is divided into mandatory and elective subjects allowing students to tailor their learning experience.";
+  const curriculumBullets = programme?.curriculumBullets?.length > 0 ? programme.curriculumBullets : [
+    "Two language papers (One regional/national, one secondary)",
+    "Mathematics and logic",
+    "General Science (Physics, Chemistry, Biology)",
+    "Social Science (History, Geography, Civics)",
+    "One skill-based elective"
+  ];
+
+  return <><PageHero title={title} text={subtitle} label="Programme Details" image={image} navigate={navigate} /><main className="py-12 md:py-16"><div className="mx-auto max-w-[1000px] px-5 md:px-8"><div className="prose max-w-none text-stone-700"><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Programme Overview</h2><div className="whitespace-pre-wrap">{text}</div><div className="my-8 grid gap-6 sm:grid-cols-3 border-y border-stone-200 py-8"><div><h3 className="font-semibold text-stone-900">Eligibility</h3><p className="text-sm mt-1">{eligibility}</p></div><div><h3 className="font-semibold text-stone-900">Duration</h3><p className="text-sm mt-1">{duration}</p></div><div><h3 className="font-semibold text-stone-900">Assessment</h3><p className="text-sm mt-1">Annual examination</p></div></div><h2 className="text-2xl font-semibold text-[#4a131c] mb-4">Curriculum Structure</h2><p className="whitespace-pre-wrap">{curriculumText}</p><ul className="list-disc pl-5 mb-8">{curriculumBullets.map((b: string, i: number) => <li key={i}>{b}</li>)}</ul><Button onClick={() => navigate("student-login")} className="mt-4">Apply for Admission <ArrowRight className="h-4 w-4" /></Button></div></div></main><HelpCta navigate={navigate} /></>;
 }
 
 function ExaminationsPage({ navigate }: { navigate: Navigate }) {
@@ -906,26 +950,27 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
         });
 
         Object.values(subjectMap).forEach((s: any, i) => {
+          if (!s.name || String(s.name).startsWith('__EMPTY')) return;
           const totalVal = Number(s.total) || (Number(s.th) || 0) + (Number(s.pr) || 0);
           subjects.push({
             sNo: String(i + 1),
             name: s.name,
-            max: s.max || 100,
-            min: s.min || 33,
+            max: Number(s.max) || 100,
+            min: Number(s.min) || 33,
             th: Number(s.th) || 0,
             pr: Number(s.pr) || 0,
             ia: Number(s.ia) || 0,
             total: totalVal,
-            grade: s.grade || (totalVal >= (s.min || 33) ? "PASS" : "FAIL")
+            grade: s.grade || (totalVal >= (Number(s.min) || 33) ? "PASS" : "FAIL")
           });
         });
       }
 
       let grandTotal = 0;
-      subjects.forEach(s => grandTotal += s.total);
+      subjects.forEach(s => grandTotal += (Number(s.total) || 0));
 
-      const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (s.max || 100), 0);
-      const allSubjectsPassed = subjects.every((s: any) => s.total >= (s.min || 33));
+      const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (Number(s.max) || 100), 0);
+      const allSubjectsPassed = subjects.every((s: any) => (Number(s.total) || 0) >= (Number(s.min) || 33));
 
       targetRows.push({
         enrollmentNumber,
@@ -3470,6 +3515,14 @@ function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeI
   const [studentDob, setStudentDob] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [progImage, setProgImage] = useState("");
+  const [progText, setProgText] = useState("");
+  const [progSubtitle, setProgSubtitle] = useState("");
+  const [progCurriculumText, setProgCurriculumText] = useState("");
+  const [progCurriculumBullets, setProgCurriculumBullets] = useState("");
+  const [progEligibility, setProgEligibility] = useState("");
+  const [progDuration, setProgDuration] = useState("");
+
   const fetchData = async () => {
     if (!programmeId) return;
     setLoading(true);
@@ -3478,6 +3531,13 @@ function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeI
       if (!progRes.ok) throw new Error("Programme not found");
       const progData = await progRes.json();
       setProgramme(progData);
+      setProgImage(progData.image || "");
+      setProgText(progData.text || "");
+      setProgSubtitle(progData.subtitle || "");
+      setProgCurriculumText(progData.curriculumText || "");
+      setProgCurriculumBullets(progData.curriculumBullets?.join('\n') || "");
+      setProgEligibility(progData.eligibility || "");
+      setProgDuration(progData.duration || "");
       setPresetSubjects(progData.subjects || []);
       setCustomColumns(progData.marksheetColumns || []);
       setMaterials(progData.materials || []);
@@ -3507,6 +3567,68 @@ function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeI
   useEffect(() => {
     fetchData();
   }, [programmeId]);
+
+  const handleSaveDetails = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/programmes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          id: programme._id, 
+          image: progImage, 
+          text: progText,
+          subtitle: progSubtitle,
+          curriculumText: progCurriculumText,
+          curriculumBullets: progCurriculumBullets.split('\n').map(s => s.trim()).filter(Boolean),
+          eligibility: progEligibility,
+          duration: progDuration
+        })
+      });
+      if (res.ok) {
+        notify("Programme details updated successfully!");
+        fetchData();
+      } else {
+        alert("Failed to update details");
+      }
+    } catch (e) {
+      alert("Failed to save details");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", "Programme Image - " + programme.title);
+    formData.append("category", "Programme Image");
+    formData.append("programme", programme.title);
+
+    setUploadingImage(true);
+    try {
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const doc = await res.json();
+        setProgImage(`/api/documents?id=${doc._id}`);
+        notify("Image uploaded to GridFS successfully!");
+      } else {
+        alert("Failed to upload image.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSaveSubjects = async () => {
     setSaving(true);
@@ -4211,6 +4333,110 @@ function AdminProgrammeDashboard({ programmeId, navigate, notify }: { programmeI
             ))}
           </div>
         </section>
+        
+        <section className="bg-white border border-stone-200 p-5 md:p-6 rounded-lg shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
+            <h2 className="font-bold text-stone-850 text-sm uppercase tracking-wider flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[#a1283c]" /> Programme Slug Details</h2>
+            <Button onClick={handleSaveDetails} disabled={saving} className="min-h-8 px-3 py-1 text-xs">
+              {saving ? 'Saving...' : 'Save Details'}
+            </Button>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-4">
+              <div>
+                <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Programme Image</label>
+                <div className="flex gap-2 mb-2">
+                  <input 
+                    type="text" 
+                    value={progImage} 
+                    onChange={e => setProgImage(e.target.value)} 
+                    className="flex-1 w-full text-xs border rounded p-2 outline-none bg-stone-50"
+                    placeholder="Image URL..."
+                  />
+                  <div className="relative overflow-hidden inline-block shrink-0">
+                    <Button variant="secondary" className="min-h-[34px] px-3 py-1 text-xs" disabled={uploadingImage}>
+                      {uploadingImage ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Upload to GridFS'}
+                    </Button>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleImageUpload} 
+                      disabled={uploadingImage}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+                {progImage && (
+                  <div className="mt-3 w-full h-32 rounded border overflow-hidden">
+                    <img src={progImage} alt="Programme Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Programme Subtitle</label>
+                <input 
+                  type="text" 
+                  value={progSubtitle} 
+                  onChange={e => setProgSubtitle(e.target.value)} 
+                  className="w-full text-xs border rounded p-2 outline-none bg-stone-50"
+                  placeholder="e.g. A structured academic pathway..."
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Eligibility</label>
+                  <input 
+                    type="text" 
+                    value={progEligibility} 
+                    onChange={e => setProgEligibility(e.target.value)} 
+                    className="w-full text-xs border rounded p-2 outline-none bg-stone-50"
+                    placeholder="e.g. Class VIII pass"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Duration</label>
+                  <input 
+                    type="text" 
+                    value={progDuration} 
+                    onChange={e => setProgDuration(e.target.value)} 
+                    className="w-full text-xs border rounded p-2 outline-none bg-stone-50"
+                    placeholder="e.g. 2 academic years"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Programme Overview Description</label>
+                <textarea 
+                  value={progText} 
+                  onChange={e => setProgText(e.target.value)} 
+                  className="w-full h-24 text-sm border rounded p-3 outline-none bg-stone-50 resize-none"
+                  placeholder="Enter full programme details for the public page..."
+                />
+              </div>
+              <div>
+                <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Curriculum Structure Text</label>
+                <textarea 
+                  value={progCurriculumText} 
+                  onChange={e => setProgCurriculumText(e.target.value)} 
+                  className="w-full h-16 text-sm border rounded p-3 outline-none bg-stone-50 resize-none"
+                  placeholder="The academic structure is divided into..."
+                />
+              </div>
+              <div>
+                <label className="text-[11px] uppercase font-bold text-stone-500 block mb-1">Curriculum Bullets (One per line)</label>
+                <textarea 
+                  value={progCurriculumBullets} 
+                  onChange={e => setProgCurriculumBullets(e.target.value)} 
+                  className="w-full h-32 text-sm border rounded p-3 outline-none bg-stone-50 resize-none whitespace-pre"
+                  placeholder="Mathematics and logic&#10;General Science"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     )}
 
@@ -4730,7 +4956,20 @@ export default function App({ initialPage = "home" }: { initialPage?: Page }) {
     }
     return false;
   });
-  const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
+  const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('selectedProgrammeId') || null;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (selectedProgrammeId) {
+      sessionStorage.setItem('selectedProgrammeId', selectedProgrammeId);
+    } else {
+      sessionStorage.removeItem('selectedProgrammeId');
+    }
+  }, [selectedProgrammeId]);
   const [toast, setToast] = useState("");
 
   const [cmsData, setCmsData] = React.useState({});

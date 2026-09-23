@@ -403,21 +403,27 @@ export async function PATCH(request: Request) {
       const allResults = await Result.find({});
       let fixed = 0;
       for (const res of allResults) {
-        const subjects = res.subjects || [];
+        let subjects = res.subjects || [];
+        
+        // Filter out ghost empty columns that shouldn't be there
+        subjects = subjects.filter((s: any) => s.name && !String(s.name).startsWith('__EMPTY'));
         if (subjects.length === 0) continue;
+
         const allPass = subjects.every((s: any) => (s.total ?? (s.th + s.pr + s.ia)) >= (s.min || 33));
         const correctStatus = allPass ? 'PASS' : 'FAIL';
-        if (res.resultStatus !== correctStatus) {
-          const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (s.max || 100), 0);
-          const grandTotal = subjects.reduce((sum: number, s: any) => sum + (s.total || 0), 0);
-          res.resultStatus = correctStatus;
-          res.grandTotal = grandTotal;
-          res.percentage = totalMaxMarks > 0 ? Math.round((grandTotal / totalMaxMarks) * 10000) / 100 : res.percentage;
-          await res.save();
-          fixed++;
-        }
+        
+        const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (Number(s.max) || 100), 0);
+        const grandTotal = subjects.reduce((sum: number, s: any) => sum + (Number(s.total) || 0), 0);
+        const correctPercentage = totalMaxMarks > 0 ? Math.round((grandTotal / totalMaxMarks) * 10000) / 100 : res.percentage;
+        
+        res.subjects = subjects; // Save the cleaned up subjects array back to the DB
+        res.resultStatus = correctStatus;
+        res.grandTotal = grandTotal;
+        res.percentage = correctPercentage;
+        await res.save();
+        fixed++;
       }
-      return NextResponse.json({ message: `Recomputed ${allResults.length} results. Fixed ${fixed} incorrect statuses.`, fixed });
+      return NextResponse.json({ message: `Recomputed ${allResults.length} results. Fixed ${fixed} records.`, fixed });
     }
 
     // Individual result update by ID
