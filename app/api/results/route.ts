@@ -103,8 +103,20 @@ function mapColumns(row: Record<string, any>) {
     });
   });
 
-  const calcPercent = total && percent === undefined ? Number(total) / (subjects.length * 100) * 100 : Number(percent || 0);
-  const calcStatus = status ? String(status).toUpperCase().includes('PASS') ? 'PASS' : String(status).toUpperCase() : (calcPercent >= 33 ? 'PASS' : 'FAIL');
+  // Calculate total max marks from actual subjects
+  const totalMaxMarks = subjects.length > 0 ? subjects.reduce((sum, s) => sum + (s.max || 100), 0) : 0;
+  const grandTotalMarks = Number(total || 0) || subjects.reduce((sum, s) => sum + (s.total || 0), 0);
+  const calcPercent = totalMaxMarks > 0 ? (grandTotalMarks / totalMaxMarks) * 100 : Number(percent || 0);
+
+  // PASS only if ALL subjects individually meet their minimum pass marks
+  const allSubjectsPassed = subjects.length > 0
+    ? subjects.every(s => (s.total || (s.th + s.pr + s.ia)) >= (s.min || 33))
+    : calcPercent >= 33;
+
+  // If status is explicitly provided in the data, respect it; otherwise compute
+  const calcStatus = status
+    ? (String(status).toUpperCase().includes('PASS') ? 'PASS' : 'FAIL')
+    : (allSubjectsPassed ? 'PASS' : 'FAIL');
 
   return {
     enrollmentNumber: enrollment ? String(enrollment).trim() : (roll ? String(roll).trim() : null),
@@ -375,6 +387,46 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
     await Result.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Result deleted successfully.' });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(request.url);
+    const recompute = searchParams.get('recompute');
+
+    // Special action: recompute pass/fail for ALL existing results
+    if (recompute === 'all') {
+      const allResults = await Result.find({});
+      let fixed = 0;
+      for (const res of allResults) {
+        const subjects = res.subjects || [];
+        if (subjects.length === 0) continue;
+        const allPass = subjects.every((s: any) => (s.total ?? (s.th + s.pr + s.ia)) >= (s.min || 33));
+        const correctStatus = allPass ? 'PASS' : 'FAIL';
+        if (res.resultStatus !== correctStatus) {
+          const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (s.max || 100), 0);
+          const grandTotal = subjects.reduce((sum: number, s: any) => sum + (s.total || 0), 0);
+          res.resultStatus = correctStatus;
+          res.grandTotal = grandTotal;
+          res.percentage = totalMaxMarks > 0 ? Math.round((grandTotal / totalMaxMarks) * 10000) / 100 : res.percentage;
+          await res.save();
+          fixed++;
+        }
+      }
+      return NextResponse.json({ message: `Recomputed ${allResults.length} results. Fixed ${fixed} incorrect statuses.`, fixed });
+    }
+
+    // Individual result update by ID
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+    const data = await request.json();
+    const updated = await Result.findByIdAndUpdate(id, { $set: data }, { new: true });
+    if (!updated) return NextResponse.json({ error: 'Result not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Result updated successfully.', result: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

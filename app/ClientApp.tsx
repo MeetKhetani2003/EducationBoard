@@ -924,6 +924,9 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
       let grandTotal = 0;
       subjects.forEach(s => grandTotal += s.total);
 
+      const totalMaxMarks = subjects.reduce((sum: number, s: any) => sum + (s.max || 100), 0);
+      const allSubjectsPassed = subjects.every((s: any) => s.total >= (s.min || 33));
+
       targetRows.push({
         enrollmentNumber,
         rollNumber: String(row[mapping.rollNumber] || enrollmentNumber).trim(),
@@ -935,10 +938,11 @@ function AdminImport({ navigate, notify }: { navigate: Navigate; notify: (messag
         examYear: String(row[mapping.examYear] || "2026").trim(),
         subjects,
         grandTotal,
-        percentage: Number(row[mapping.percentage] || ((grandTotal / (subjects.length * 100)) * 100).toFixed(2)),
-        resultStatus: String(row[mapping.resultStatus] || (grandTotal >= (subjects.length * 33) ? "PASS" : "FAIL")).trim(),
+        percentage: Number(row[mapping.percentage] || (totalMaxMarks > 0 ? ((grandTotal / totalMaxMarks) * 100).toFixed(2) : 0)),
+        resultStatus: String(row[mapping.resultStatus] || (allSubjectsPassed ? "PASS" : "FAIL")).trim(),
         isValid
       });
+
     });
 
     setValidatedData(targetRows);
@@ -4720,7 +4724,12 @@ function AdminLoginPage({ onLogin, navigate }: { onLogin: () => void, navigate: 
 export default function App({ initialPage = "home" }: { initialPage?: Page }) {
   const router = useRouter();
   const [page, setPage] = useState<Page>(initialPage);
-  const [adminAuth, setAdminAuth] = useState(false);
+  const [adminAuth, setAdminAuth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('adminAuth') === 'true';
+    }
+    return false;
+  });
   const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
@@ -4760,8 +4769,19 @@ export default function App({ initialPage = "home" }: { initialPage?: Page }) {
   const isAdmin = page.startsWith("admin-");
   const isSystem = page.startsWith("system-");
   const isPortal = page === "student-zone";
+
+  function handleAdminLogin() {
+    sessionStorage.setItem('adminAuth', 'true');
+    setAdminAuth(true);
+  }
+
+  function handleAdminLogout() {
+    sessionStorage.removeItem('adminAuth');
+    setAdminAuth(false);
+  }
+
   return <CmsContext.Provider value={{ cmsData, fetchCms }}>
-    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? (adminAuth ? <AdminShell page={page} navigate={navigate} notify={notify} selectedProgrammeId={selectedProgrammeId} setSelectedProgrammeId={setSelectedProgrammeId} /> : <AdminLoginPage onLogin={() => setAdminAuth(true)} navigate={navigate} />) : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
+    {isSystem ? <StudentSystemShell page={page} navigate={navigate} notify={notify} /> : isPortal ? <StudentPortalShell page={page} navigate={navigate} notify={notify} /> : isAdmin ? (adminAuth ? <AdminShell page={page} navigate={navigate} notify={notify} selectedProgrammeId={selectedProgrammeId} setSelectedProgrammeId={setSelectedProgrammeId} /> : <AdminLoginPage onLogin={handleAdminLogin} navigate={navigate} />) : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#f57214] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
     <AnimatePresence>{toast && <motion.div role="status" initial={{ opacity: 0, y: 16, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 8, x: "-50%" }} className="fixed bottom-6 left-1/2 z-[120] flex min-w-[280px] items-center gap-3 rounded-lg bg-[#4a131c] px-4 py-3 text-sm font-medium text-white shadow-2xl"><CheckCircle2 className="h-5 w-5 text-lime-400" />{String(toast)}</motion.div>}</AnimatePresence>
   </CmsContext.Provider>;
 }

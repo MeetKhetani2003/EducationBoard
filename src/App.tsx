@@ -867,7 +867,9 @@ function AdminLoginPage({ onLogin, navigate }: { onLogin: () => void, navigate: 
 
 export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash);
-  const [adminAuth, setAdminAuth] = useState(false);
+  const [adminAuth, setAdminAuth] = useState(() => {
+    return sessionStorage.getItem('adminAuth') === 'true';
+  });
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -893,8 +895,19 @@ export default function App() {
   }
 
   const isAdmin = page.startsWith("admin-");
+
+  function handleAdminLogin() {
+    sessionStorage.setItem('adminAuth', 'true');
+    setAdminAuth(true);
+  }
+
+  function handleAdminLogout() {
+    sessionStorage.removeItem('adminAuth');
+    setAdminAuth(false);
+  }
+
   return <>
-    {isAdmin ? (adminAuth ? <AdminShell page={page} navigate={navigate} notify={notify} /> : <AdminLoginPage onLogin={() => setAdminAuth(true)} navigate={navigate} />) : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ebb81e] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
+    {isAdmin ? (adminAuth ? <AdminShell page={page} navigate={navigate} notify={notify} /> : <AdminLoginPage onLogin={handleAdminLogin} navigate={navigate} />) : <div className="min-h-screen bg-white"><PublicHeader navigate={navigate} active={page} /><AnimatePresence mode="wait"><motion.div key={page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}>{renderPublicPage(page, navigate, notify)}</motion.div></AnimatePresence><Footer navigate={navigate} />{page !== "results" && page !== "result-detail" && <button onClick={() => navigate("results")} className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ebb81e] text-sm font-bold text-white shadow-xl md:hidden"><Search className="h-4 w-4" /> Check Your Result</button>}</div>}
     <AnimatePresence>{toast && <motion.div role="status" initial={{ opacity: 0, y: 16, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 8, x: "-50%" }} className="fixed bottom-6 left-1/2 z-[120] flex min-w-[280px] items-center gap-3 rounded-lg bg-[#4a3013] px-4 py-3 text-sm font-medium text-white shadow-2xl"><CheckCircle2 className="h-5 w-5 text-lime-400" />{toast}</motion.div>}</AnimatePresence>
   </>;
 }
