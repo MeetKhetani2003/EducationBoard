@@ -14,6 +14,7 @@
   "/api/legalstatus/route": "app/api/legalstatus/route.js",
   "/api/programmes/route": "app/api/programmes/route.js",
   "/api/recognition/route": "app/api/recognition/route.js",
+  "/api/results/declared/route": "app/api/results/declared/route.js",
   "/api/results/parse/route": "app/api/results/parse/route.js",
   "/api/results/route": "app/api/results/route.js",
   "/api/semesters/route": "app/api/semesters/route.js",

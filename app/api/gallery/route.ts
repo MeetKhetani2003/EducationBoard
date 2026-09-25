@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const item = new Gallery({
       title: data.title,
       imageUrl: data.imageUrl,
+      mediaType: data.mediaType || 'image',
       category: data.category
     });
 

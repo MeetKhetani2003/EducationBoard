@@ -33,6 +33,7 @@ function mapColumns(row: Record<string, any>) {
   const name = find('name', 'studentname', 'fullname', 'candidatename', 'student');
   const father = find('father', 'fathername', 'fathersname', 'parentname', 'guardianname');
   const dob = parseDate(find('dob', 'dateofbirth', 'birthdate', 'birth'));
+  const printDate = parseDate(find('printdate', 'print', 'publisheddate', 'published'));
   const programme = find('programme', 'program', 'course', 'stream', 'class');
   const exam = find('exam', 'examination', 'examname', 'examinationname');
   const year = find('year', 'examyear', 'sessionyear', 'session', 'batch');
@@ -131,6 +132,7 @@ function mapColumns(row: Record<string, any>) {
     grandTotal: Number(total || 0),
     percentage: Math.round(calcPercent * 100) / 100,
     resultStatus: calcStatus,
+    printDate: printDate || new Date(),
   };
 }
 async function upsertStudentForResult(resultData: any) {
@@ -139,13 +141,18 @@ async function upsertStudentForResult(resultData: any) {
     // Look up student by enrollment
     const student = await Student.findOne({ enrollmentNumber: enrollment });
     if (student) {
+      // Sync student demographic data with the latest result upload data
+      if (resultData.studentName) student.name = resultData.studentName;
+      if (resultData.fatherName && resultData.fatherName !== 'N/A') student.fatherName = resultData.fatherName;
+      if (resultData.dob) student.dob = resultData.dob;
+      
       // If student exists, check if programme is in their programmes list
       const currentProgrammes = student.programmes || [];
       if (!currentProgrammes.includes(resultData.programme)) {
         currentProgrammes.push(resultData.programme);
         student.programmes = currentProgrammes;
-        await student.save();
       }
+      await student.save();
     } else {
       // Create new student
       const newStudent = new Student({
@@ -197,8 +204,13 @@ export async function GET(request: Request) {
 
     // Public: search by enrollment + DOB
     const searchDate = new Date(dobString);
+    const searchVal = enrollmentNumber.trim();
+    
     let result = await Result.findOne({
-      enrollmentNumber: enrollmentNumber.trim(),
+      $or: [
+        { enrollmentNumber: { $regex: new RegExp(`^${searchVal}$`, 'i') } },
+        { rollNumber: { $regex: new RegExp(`^${searchVal}$`, 'i') } }
+      ],
       dob: { 
         $gte: new Date(searchDate.getTime() - 24 * 60 * 60 * 1000), 
         $lte: new Date(searchDate.getTime() + 24 * 60 * 60 * 1000) 
@@ -212,7 +224,10 @@ export async function GET(request: Request) {
         const swappedDate = new Date(`${parts[0]}-${parts[2]}-${parts[1]}`); // e.g., "1976-09-11"
         if (!isNaN(swappedDate.getTime())) {
           result = await Result.findOne({
-            enrollmentNumber: enrollmentNumber.trim(),
+            $or: [
+              { enrollmentNumber: { $regex: new RegExp(`^${searchVal}$`, 'i') } },
+              { rollNumber: { $regex: new RegExp(`^${searchVal}$`, 'i') } }
+            ],
             dob: { 
               $gte: new Date(swappedDate.getTime() - 24 * 60 * 60 * 1000), 
               $lte: new Date(swappedDate.getTime() + 24 * 60 * 60 * 1000) 
@@ -271,7 +286,7 @@ export async function POST(request: Request) {
         try {
           await Result.findOneAndUpdate(
             { enrollmentNumber: resultData.enrollmentNumber },
-            { ...resultData, resultDate: new Date() },
+            { printDate: new Date(), ...resultData },
             { upsert: true, new: true }
           );
           await upsertStudentForResult(resultData);
@@ -290,9 +305,31 @@ export async function POST(request: Request) {
       });
     } else {
       // === MANUAL SINGLE OR BULK JSON RESULT ===
+      const { searchParams } = new URL(request.url);
+      const forceUpdateStudent = searchParams.get('forceUpdateStudent') === 'true';
       const data = await request.json();
 
       if (Array.isArray(data)) {
+        if (!forceUpdateStudent) {
+          // Check for conflicts first
+          const enrollments = data.map((r: any) => String(r.enrollmentNumber || r.rollNumber).trim());
+          const existingStudents = await Student.find({ enrollmentNumber: { $in: enrollments } });
+          const mismatches = [];
+          for (const row of data) {
+            const enrollment = String(row.enrollmentNumber || row.rollNumber).trim();
+            const studentName = String(row.studentName).trim();
+            const existing = existingStudents.find((s: any) => s.enrollmentNumber === enrollment);
+            if (existing && existing.name !== studentName) {
+              mismatches.push(enrollment);
+            }
+          }
+          if (mismatches.length > 0) {
+            return NextResponse.json({
+              error: `Warning: ${mismatches.length} students already exist with different names. Do you want to overwrite their profiles with this upload's data?`,
+              conflictType: 'student_mismatch'
+            }, { status: 409 });
+          }
+        }
         let imported = 0;
         let skipped = 0;
         const errors: string[] = [];
@@ -317,7 +354,8 @@ export async function POST(request: Request) {
               grandTotal: Number(row.grandTotal || 0),
               percentage: Number(row.percentage || 0),
               resultStatus: String(row.resultStatus || 'PASS'),
-              resultDate: new Date(),
+              printDate: row.printDate ? new Date(row.printDate) : new Date(),
+              examCenter: String(row.examCenter || '').trim(),
             };
 
             await Result.findOneAndUpdate(
@@ -357,12 +395,23 @@ export async function POST(request: Request) {
         grandTotal: Number(data.grandTotal || 0),
         percentage: Number(data.percentage || 0),
         resultStatus: String(data.resultStatus || 'PASS'),
-        resultDate: new Date(),
+        printDate: data.printDate ? new Date(data.printDate) : new Date(),
+        examCenter: String(data.examCenter || '').trim(),
       };
 
       const existing = await Result.findOne({ enrollmentNumber: resultData.enrollmentNumber });
       if (existing && !data.forceUpdate) {
         return NextResponse.json({ error: `A result with Enrollment ${resultData.enrollmentNumber} already exists. Send forceUpdate: true to overwrite.`, exists: true }, { status: 409 });
+      }
+
+      if (!forceUpdateStudent) {
+        const existingStudent = await Student.findOne({ enrollmentNumber: resultData.enrollmentNumber });
+        if (existingStudent && existingStudent.name !== resultData.studentName) {
+          return NextResponse.json({ 
+            error: `Warning: Student '${existingStudent.name}' already exists with this enrollment number. Do you want to overwrite their profile with '${resultData.studentName}'?`,
+            conflictType: 'student_mismatch'
+          }, { status: 409 });
+        }
       }
 
       const result = await Result.findOneAndUpdate(
@@ -432,6 +481,7 @@ export async function PATCH(request: Request) {
     const data = await request.json();
     const updated = await Result.findByIdAndUpdate(id, { $set: data }, { new: true });
     if (!updated) return NextResponse.json({ error: 'Result not found' }, { status: 404 });
+    await upsertStudentForResult(updated);
     return NextResponse.json({ message: 'Result updated successfully.', result: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

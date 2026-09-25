@@ -6,15 +6,15 @@ type Props = {
 }
 
 const descriptions: Record<string, string> = {
-  "home": "Official portal for Thar Board of School and Technical Education. Access examination results, admit cards, student services, and academic programmes.",
-  "about": "Learn about the Thar Board of School and Technical Education, our mission, vision, and guiding principles.",
-  "contact": "Contact the Thar Board of School and Technical Education for student services, examination support, and result queries.",
-  "programmes": "Explore academic programmes offered by the Thar Board of School and Technical Education.",
+  "home": "Official portal for Thar Vidyalaya Evam Takniki Shiksha Board. Access examination results, admit cards, student services, and academic programmes.",
+  "about": "Learn about the Thar Vidyalaya Evam Takniki Shiksha Board, our mission, vision, and guiding principles.",
+  "contact": "Contact the Thar Vidyalaya Evam Takniki Shiksha Board for student services, examination support, and result queries.",
+  "programmes": "Explore academic programmes offered by the Thar Vidyalaya Evam Takniki Shiksha Board.",
   "results": "Check your examination results online. Enter your enrollment number and registration number to view your results.",
-  "news": "Latest news and updates from Thar Board of School and Technical Education.",
-  "notices": "Official notices and circulars from Thar Board of School and Technical Education.",
+  "news": "Latest news and updates from Thar Vidyalaya Evam Takniki Shiksha Board.",
+  "notices": "Official notices and circulars from Thar Vidyalaya Evam Takniki Shiksha Board.",
   "downloads": "Download forms, syllabus, and other official documents.",
-  "student-zone": "Secure portal for students of Thar Board of School and Technical Education."
+  "student-zone": "Secure portal for students of Thar Vidyalaya Evam Takniki Shiksha Board."
 };
 
 const navItems = [
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const label = navItems.find((item) => item.page === route)?.label || "Official Portal";
   
   // Custom title logic to match exactly what they had
-  const title = `${label} | Thar Board of School and Technical Education`;
+  const title = `${label} | Thar Vidyalaya Evam Takniki Shiksha Board`;
   const desc = descriptions[route] || descriptions["home"];
   
   const url = `https://tharboard.in${route === 'home' ? '' : '/' + route}`;
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description: desc,
       url: url,
-      siteName: 'Thar Board of School and Technical Education',
+      siteName: 'Thar Vidyalaya Evam Takniki Shiksha Board',
     },
     twitter: {
       title,
