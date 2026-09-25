@@ -2763,13 +2763,28 @@ function ResultDetailPage({
 function VerificationPage({ navigate }: { navigate: Navigate }) {
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(false);
-  function verify(event: FormEvent) {
+  const [rollNumber, setRollNumber] = useState("");
+  const [dob, setDob] = useState("");
+  const [certNum, setCertNum] = useState("");
+  const [resultData, setResultData] = useState<any>(null);
+
+  async function verify(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
-    window.setTimeout(() => {
+    try {
+      const res = await fetch(`/api/results?enrollment=${rollNumber}&dob=${dob}`);
+      if (res.ok) {
+        const data = await res.json();
+        setResultData(data);
+        setVerified(true);
+      } else {
+        alert("Document verification failed. Please check the details.");
+      }
+    } catch (e) {
+      alert("Error verifying document.");
+    } finally {
       setLoading(false);
-      setVerified(true);
-    }, 900);
+    }
   }
   return (
     <>
@@ -2786,17 +2801,18 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
             className="border border-stone-200 bg-white p-6 md:p-9"
           >
             <div className="grid gap-5 md:grid-cols-2">
-              <Field
-                label="Roll Number"
-                required
-                placeholder="Enter roll number"
-              />
-              <Field
-                label="Certificate Number"
-                required
-                placeholder="Enter certificate number"
-              />
-              <Field label="Date of Birth" required type="date" />
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Roll Number</label>
+                <input required className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" placeholder="Enter roll number" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Certificate Number</label>
+                <input required className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" placeholder="Enter certificate number" value={certNum} onChange={(e) => setCertNum(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Date of Birth</label>
+                <input required type="date" className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" value={dob} onChange={(e) => setDob(e.target.value)} />
+              </div>
             </div>
             <Button
               type="submit"
@@ -2829,12 +2845,12 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
                 </div>
                 <div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">
                   {[
-                    ["Student", "{resultData.studentName}"],
-                    ["Document", "Senior Secondary Marksheet"],
-                    ["Roll Number", "{resultData.enrollmentNumber}"],
-                    ["Issue Date", "17 August 2026"],
-                    ["Programme", "Senior Secondary"],
-                    ["Verification ID", "THAR-R26-1842-0098"],
+                    ["Student", resultData?.studentName || "N/A"],
+                    ["Document", "Marksheet"],
+                    ["Roll Number", resultData?.enrollmentNumber || resultData?.rollNumber || "N/A"],
+                    ["Issue Date", new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })],
+                    ["Programme", resultData?.programme || "N/A"],
+                    ["Verification ID", certNum || "THAR-VERIFIED"],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
