@@ -69,12 +69,13 @@ import {
   Users,
   X,
   LogOut,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 
 const CmsContext = React.createContext<any>({
   cmsData: {},
-  fetchCms: () => { },
+  fetchCms: () => {},
 });
 
 type Page =
@@ -243,6 +244,12 @@ const resultRows = [
     programme: "Vocational",
   },
   {
+    name: "Diploma & Skill Courses (Computer, Beautician, etc.)",
+    date: "15 August 2026",
+    status: "Declared",
+    programme: "Skill Development",
+  },
+  {
     name: "October Public Examination 2026",
     date: "Expected 18 December 2026",
     status: "Upcoming",
@@ -357,7 +364,7 @@ function Logo({
         <div
           className={`font-bold tracking-[0.02em] ${compact ? "text-[14px]" : "text-[16px] md:text-[18px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"}`}
         >
-          Thar Vidyalaya Evam Takniki Shiksha Board
+          THAR BOARD OF SCHOOL & TECHNICAL EDUCATION
         </div>
         <div
           className={`mt-0.5 font-semibold tracking-[0.15em] uppercase ${compact ? "text-[8px]" : "text-[9px] md:text-[10px]"} ${inverse ? "text-[#e8c476]/80" : "text-[#440d16]/80"}`}
@@ -607,47 +614,47 @@ const navItems: {
   page: Page;
   children?: { label: string; page: Page }[];
 }[] = [
-    { label: "Home", page: "home" },
-    {
-      label: "About Us",
-      page: "about",
-      children: [
-        { label: "About the Board", page: "about" },
-        { label: "Recognition & Approvals", page: "recognition" },
-      ],
-    },
-    { label: "Recognition", page: "recognition" },
-    { label: "Programmes", page: "programmes" },
-    {
-      label: "Examinations",
-      page: "examinations",
-      children: [
-        { label: "Examination Schedule", page: "examinations" },
-        { label: "Admit Card", page: "student-login" },
-        { label: "Examination Centres", page: "examinations" },
-      ],
-    },
-    {
-      label: "Results",
-      page: "results",
-      children: [
-        { label: "Check Result", page: "results" },
-        { label: "Result Archive", page: "result-archive" },
-        { label: "Result Verification", page: "verification" },
-      ],
-    },
-    { label: "Student Zone", page: "student-login" },
-    {
-      label: "News & Notices",
-      page: "news",
-      children: [
-        { label: "News & Announcements", page: "news" },
-        { label: "Notices & Circulars", page: "notices" },
-      ],
-    },
-    { label: "Downloads", page: "downloads" },
-    { label: "Contact", page: "contact" },
-  ];
+  { label: "Home", page: "home" },
+  {
+    label: "About Us",
+    page: "about",
+    children: [
+      { label: "About the Board", page: "about" },
+      { label: "Recognition & Approvals", page: "recognition" },
+    ],
+  },
+  { label: "Recognition", page: "recognition" },
+  { label: "Programmes", page: "programmes" },
+  {
+    label: "Examinations",
+    page: "examinations",
+    children: [
+      { label: "Examination Schedule", page: "examinations" },
+      { label: "Admit Card", page: "student-login" },
+      { label: "Examination Centres", page: "examinations" },
+    ],
+  },
+  {
+    label: "Results",
+    page: "results",
+    children: [
+      { label: "Check Result", page: "results" },
+      { label: "Result Archive", page: "result-archive" },
+      { label: "Result Verification", page: "verification" },
+    ],
+  },
+  { label: "Student Zone", page: "student-login" },
+  {
+    label: "News & Notices",
+    page: "news",
+    children: [
+      { label: "News & Announcements", page: "news" },
+      { label: "Notices & Circulars", page: "notices" },
+    ],
+  },
+  { label: "Downloads", page: "downloads" },
+  { label: "Contact", page: "contact" },
+];
 
 function PublicHeader({
   navigate,
@@ -838,7 +845,7 @@ function Footer({ navigate }: { navigate: Navigate }) {
   const email = cmsData["org.email"] || "help@tbste.edu";
   const phone = cmsData["org.phone"] || "+91 8869844584";
   const orgName =
-    cmsData["org.name"] || "Thar Vidyalaya Evam Takniki Shiksha Board";
+    cmsData["org.name"] || "THAR BOARD OF SCHOOL & TECHNICAL EDUCATION";
 
   return (
     <footer className="bg-[#3c0b13] text-white">
@@ -1195,14 +1202,14 @@ function HomePage({ navigate }: { navigate: Navigate }) {
   const displayNews =
     dbNews.length > 0
       ? dbNews.map((item) => ({
-        category: item.category,
-        date: item.publishDate
-          ? new Date(item.publishDate).toLocaleDateString()
-          : "Latest",
-        title: item.title,
-        summary: item.summary,
-        image: item.imageUrl || images.ceremony,
-      }))
+          category: item.category,
+          date: item.publishDate
+            ? new Date(item.publishDate).toLocaleDateString()
+            : "Latest",
+          title: item.title,
+          summary: item.summary,
+          image: item.imageUrl || images.ceremony,
+        }))
       : newsItems;
   const safeCms = cmsData || {};
 
@@ -1235,35 +1242,35 @@ function HomePage({ navigate }: { navigate: Navigate }) {
     image: string;
     page: Page;
   }[] = [
-      {
-        title: "Admit Card",
-        text: "Download your card.",
-        icon: FileCheck2,
-        page: "student-login",
-        image: images.students,
-      },
-      {
-        title: "Exam Schedule",
-        text: "Dates and times.",
-        icon: Clock3,
-        page: "examinations",
-        image: images.exams,
-      },
-      {
-        title: "Result Portal",
-        text: "View official results.",
-        icon: BookOpen,
-        page: "results",
-        image: images.diploma,
-      },
-      {
-        title: "Contact Us",
-        text: "Help and support.",
-        icon: Headphones,
-        page: "contact",
-        image: images.conversation,
-      },
-    ];
+    {
+      title: "Admit Card",
+      text: "Download your card.",
+      icon: FileCheck2,
+      page: "student-login",
+      image: images.students,
+    },
+    {
+      title: "Exam Schedule",
+      text: "Dates and times.",
+      icon: Clock3,
+      page: "examinations",
+      image: images.exams,
+    },
+    {
+      title: "Result Portal",
+      text: "View official results.",
+      icon: BookOpen,
+      page: "results",
+      image: images.diploma,
+    },
+    {
+      title: "Contact Us",
+      text: "Help and support.",
+      icon: Headphones,
+      page: "contact",
+      image: images.conversation,
+    },
+  ];
 
   return (
     <>
@@ -1289,7 +1296,7 @@ function HomePage({ navigate }: { navigate: Navigate }) {
               Portal
             </div>
             <div className="mb-5 text-2xl font-semibold tracking-[-0.02em] text-white md:text-3xl">
-              Thar Vidyalaya Evam Takniki Shiksha Board
+              Thar Board of School and Technical Education
             </div>
             <h1 className="max-w-2xl text-[clamp(2.8rem,6.5vw,5.4rem)] font-semibold leading-[0.98] tracking-[-0.055em]">
               {heroTitle.split("\n").map((line, i) => (
@@ -1352,7 +1359,7 @@ function HomePage({ navigate }: { navigate: Navigate }) {
                   Result Update
                 </div>
                 <p className="mt-1 text-sm font-semibold md:text-base">
-                  Senior Secondary Examination Result 2026 has been declared.
+                  Results for Secondary, Senior Secondary, Vocational, and Diploma (Computer, Beautician, etc.) have been declared.
                 </p>
               </div>
             </div>
@@ -1876,15 +1883,15 @@ function RecognitionPage({ navigate }: { navigate: Navigate }) {
   const displayDocs =
     dbRecs.length > 0
       ? dbRecs.map((r, i) => ({
-        title: r.title,
-        ref: r.reference,
-        url: r.documentUrl || "#",
-      }))
+          title: r.title,
+          ref: r.reference,
+          url: r.documentUrl || "#",
+        }))
       : fallbackDocs.map((doc, index) => ({
-        title: doc,
-        ref: "TBSTE/REC/2026/" + (103 + index),
-        url: "#",
-      }));
+          title: doc,
+          ref: "TBSTE/REC/2026/" + (103 + index),
+          url: "#",
+        }));
 
   return (
     <>
@@ -1950,13 +1957,13 @@ function ProgrammesPage({ navigate }: { navigate: Navigate }) {
   const displayProgs =
     dbProgs.length > 0
       ? dbProgs.map((p) => ({
-        _id: p._id,
-        title: p.title,
-        eligibility: p.eligibility,
-        duration: p.duration,
-        image: p.image,
-        text: p.text,
-      }))
+          _id: p._id,
+          title: p.title,
+          eligibility: p.eligibility,
+          duration: p.duration,
+          image: p.image,
+          text: p.text,
+        }))
       : programmes;
 
   return (
@@ -2100,12 +2107,12 @@ function ProgrammeDetailsPage({ navigate }: { navigate: Navigate }) {
     programme?.curriculumBullets?.length > 0
       ? programme.curriculumBullets
       : [
-        "Two language papers (One regional/national, one secondary)",
-        "Mathematics and logic",
-        "General Science (Physics, Chemistry, Biology)",
-        "Social Science (History, Geography, Civics)",
-        "One skill-based elective",
-      ];
+          "Two language papers (One regional/national, one secondary)",
+          "Mathematics and logic",
+          "General Science (Physics, Chemistry, Biology)",
+          "Social Science (History, Geography, Civics)",
+          "One skill-based elective",
+        ];
 
   return (
     <>
@@ -2164,43 +2171,43 @@ function ExaminationsPage({ navigate }: { navigate: Navigate }) {
     icon: LucideIcon;
     page: Page;
   }[] = [
-      {
-        title: "Upcoming Examinations",
-        text: "View active and forthcoming examination sessions.",
-        icon: CalendarDays,
-        page: "examinations",
-      },
-      {
-        title: "Examination Schedule",
-        text: "Check programme and subject-wise dates.",
-        icon: Clock3,
-        page: "downloads",
-      },
-      {
-        title: "Time Table",
-        text: "Download the official examination time table.",
-        icon: FileSpreadsheet,
-        page: "downloads",
-      },
-      {
-        title: "Admit Card",
-        text: "Access your examination hall admission card.",
-        icon: UserCheck,
-        page: "student-zone",
-      },
-      {
-        title: "Examination Centres",
-        text: "Find centre details and reporting information.",
-        icon: Map,
-        page: "examinations",
-      },
-      {
-        title: "Candidate Instructions",
-        text: "Read essential rules before examination day.",
-        icon: ClipboardCheck,
-        page: "downloads",
-      },
-    ];
+    {
+      title: "Upcoming Examinations",
+      text: "View active and forthcoming examination sessions.",
+      icon: CalendarDays,
+      page: "examinations",
+    },
+    {
+      title: "Examination Schedule",
+      text: "Check programme and subject-wise dates.",
+      icon: Clock3,
+      page: "downloads",
+    },
+    {
+      title: "Time Table",
+      text: "Download the official examination time table.",
+      icon: FileSpreadsheet,
+      page: "downloads",
+    },
+    {
+      title: "Admit Card",
+      text: "Access your examination hall admission card.",
+      icon: UserCheck,
+      page: "student-zone",
+    },
+    {
+      title: "Examination Centres",
+      text: "Find centre details and reporting information.",
+      icon: Map,
+      page: "examinations",
+    },
+    {
+      title: "Candidate Instructions",
+      text: "Read essential rules before examination day.",
+      icon: ClipboardCheck,
+      page: "downloads",
+    },
+  ];
   return (
     <>
       <PageHero
@@ -2510,10 +2517,12 @@ function ResultDetailPage({
           <div className="overflow-hidden border border-stone-300 bg-white shadow-[0_18px_45px_rgba(13,40,87,.08)] print:border-none print:shadow-none">
             <div className="flex flex-col gap-6 border-b-[6px] border-[#8d1c2f] p-6 md:flex-row md:items-center md:justify-between md:p-8">
               <Logo />
-              <div className="md:text-right print:hidden">
-                <StatusBadge tone="green">Result declared</StatusBadge>
+              <div className="md:text-right">
+                <div className="print:hidden">
+                  <StatusBadge tone="green">Result declared</StatusBadge>
+                </div>
                 <p className="mt-2 text-xs text-stone-500">
-                  Print Date: {resultData?.printDate ? new Date(resultData.printDate).toLocaleDateString() : "-"}
+                  Print Date: {new Date().toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -2547,13 +2556,14 @@ function ResultDetailPage({
                   ["Programme", resultData.programme || "N/A"],
                   ["Examination", resultData.examination || "N/A"],
                   ["Year", resultData.examYear || "N/A"],
+                  ["Examination Center", resultData.examCenter || "N/A"],
                   [
                     "Result Date",
                     resultData.printDate
                       ? new Date(resultData.printDate).toLocaleDateString(
-                        "en-GB",
-                        { day: "numeric", month: "long", year: "numeric" },
-                      )
+                          "en-GB",
+                          { day: "numeric", month: "long", year: "numeric" },
+                        )
                       : "N/A",
                   ],
                 ].map(([label, value]) => (
@@ -2761,27 +2771,32 @@ function ResultDetailPage({
 }
 
 function VerificationPage({ navigate }: { navigate: Navigate }) {
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
-  const [rollNumber, setRollNumber] = useState("");
+  const [roll, setRoll] = useState("");
+  const [cert, setCert] = useState("");
   const [dob, setDob] = useState("");
-  const [certNum, setCertNum] = useState("");
   const [resultData, setResultData] = useState<any>(null);
 
   async function verify(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
+    setVerified(null);
     try {
-      const res = await fetch(`/api/results?enrollment=${rollNumber}&dob=${dob}`);
-      if (res.ok) {
-        const data = await res.json();
-        setResultData(data);
-        setVerified(true);
+      const res = await fetch(`/api/results?enrollment=${encodeURIComponent(roll)}&dob=${encodeURIComponent(dob)}`);
+      const data = await res.json();
+      if (res.ok && data.result) {
+        if (data.result.verificationId === cert || data.result.enrollmentNumber === cert || data.result.rollNumber === cert) {
+          setResultData(data.result);
+          setVerified(true);
+        } else {
+          setVerified(false);
+        }
       } else {
-        alert("Document verification failed. Please check the details.");
+        setVerified(false);
       }
     } catch (e) {
-      alert("Error verifying document.");
+      setVerified(false);
     } finally {
       setLoading(false);
     }
@@ -2801,18 +2816,27 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
             className="border border-stone-200 bg-white p-6 md:p-9"
           >
             <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Roll Number</label>
-                <input required className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" placeholder="Enter roll number" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Certificate Number</label>
-                <input required className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" placeholder="Enter certificate number" value={certNum} onChange={(e) => setCertNum(e.target.value)} />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Date of Birth</label>
-                <input required type="date" className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none" value={dob} onChange={(e) => setDob(e.target.value)} />
-              </div>
+              <Field
+                label="Roll Number"
+                required
+                placeholder="Enter roll number"
+                value={roll}
+                onChange={(v) => setRoll(v)}
+              />
+              <Field
+                label="Verification ID / Certificate No."
+                required
+                placeholder="Enter verification ID"
+                value={cert}
+                onChange={(v) => setCert(v)}
+              />
+              <Field 
+                label="Date of Birth" 
+                required 
+                type="date"
+                value={dob}
+                onChange={(v) => setDob(v)}
+              />
             </div>
             <Button
               type="submit"
@@ -2828,7 +2852,7 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
             </Button>
           </form>
           <AnimatePresence>
-            {verified && (
+            {verified === true && resultData && (
               <motion.section
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2845,12 +2869,12 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
                 </div>
                 <div className="grid gap-6 p-6 sm:grid-cols-2 md:p-8">
                   {[
-                    ["Student", resultData?.studentName || "N/A"],
-                    ["Document", "Marksheet"],
-                    ["Roll Number", resultData?.enrollmentNumber || resultData?.rollNumber || "N/A"],
-                    ["Issue Date", new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })],
-                    ["Programme", resultData?.programme || "N/A"],
-                    ["Verification ID", certNum || "THAR-VERIFIED"],
+                    ["Student", resultData.studentName || "N/A"],
+                    ["Document", `${resultData.programme || "Senior Secondary"} Marksheet`],
+                    ["Roll Number", resultData.rollNumber || resultData.enrollmentNumber || "N/A"],
+                    ["Issue Date", resultData.printDate ? new Date(resultData.printDate).toLocaleDateString("en-GB") : "N/A"],
+                    ["Programme", resultData.programme || "N/A"],
+                    ["Verification ID", resultData.verificationId || "N/A"],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
@@ -2861,6 +2885,27 @@ function VerificationPage({ navigate }: { navigate: Navigate }) {
                       </b>
                     </div>
                   ))}
+                </div>
+              </motion.section>
+            )}
+
+            {verified === false && (
+              <motion.section
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 border border-red-200 bg-white"
+              >
+                <div className="flex items-center gap-3 bg-red-600 p-5 text-white">
+                  <XCircle className="h-7 w-7" />
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-red-100">
+                      Verification failed
+                    </div>
+                    <h2 className="text-xl font-semibold">Not Verified</h2>
+                  </div>
+                </div>
+                <div className="p-6 md:p-8 text-stone-600 text-sm">
+                  The document details provided do not match our records or the verification ID is incorrect. Please check the details and try again.
                 </div>
               </motion.section>
             )}
@@ -2974,14 +3019,14 @@ function NewsPage({ navigate }: { navigate: Navigate }) {
   const displayNews =
     dbNews.length > 0
       ? dbNews.map((item) => ({
-        category: item.category,
-        date: item.publishDate
-          ? new Date(item.publishDate).toLocaleDateString()
-          : "Latest",
-        title: item.title,
-        summary: item.summary,
-        image: item.imageUrl || images.ceremony,
-      }))
+          category: item.category,
+          date: item.publishDate
+            ? new Date(item.publishDate).toLocaleDateString()
+            : "Latest",
+          title: item.title,
+          summary: item.summary,
+          image: item.imageUrl || images.ceremony,
+        }))
       : newsItems;
 
   const filtered = displayNews.filter(
@@ -3130,7 +3175,7 @@ function NewsDetailPage({ navigate }: { navigate: Navigate }) {
             />
             <div className="prose mt-9 space-y-5 text-[15px] leading-8 text-stone-700">
               <p>
-                The Thar Vidyalaya Evam Takniki Shiksha Board has published
+                The Thar Board of School and Technical Education has published
                 the result of the Senior Secondary Examination 2026. Candidates
                 may use their enrollment number, registration details and date
                 of birth to access the result securely.
@@ -3227,21 +3272,21 @@ function NoticesPage({ navigate }: { navigate: Navigate }) {
   const displayNotices =
     dbNotices.length > 0
       ? dbNotices.map((n, i) => ({
-        index: String(dbNotices.length - i).padStart(2, "0"),
-        date: n.publishDate
-          ? new Date(n.publishDate).toLocaleDateString()
-          : "Latest",
-        category: n.category,
-        title: n.title,
-        ref: "TBSTE/NOTICE/2026/" + String(100 + dbNotices.length - i),
-      }))
+          index: String(dbNotices.length - i).padStart(2, "0"),
+          date: n.publishDate
+            ? new Date(n.publishDate).toLocaleDateString()
+            : "Latest",
+          category: n.category,
+          title: n.title,
+          ref: "TBSTE/NOTICE/2026/" + String(100 + dbNotices.length - i),
+        }))
       : fallbackNotices.map((title, i) => ({
-        index: String(17 - i).padStart(2, "0"),
-        date: "Aug 2026",
-        category: i % 2 ? "Circular" : "Notice",
-        title,
-        ref: "TBSTE/NOTICE/2026/" + (112 - i),
-      }));
+          index: String(17 - i).padStart(2, "0"),
+          date: "Aug 2026",
+          category: i % 2 ? "Circular" : "Notice",
+          title,
+          ref: "TBSTE/NOTICE/2026/" + (112 - i),
+        }));
 
   const filteredNotices = displayNotices.filter((item) => {
     const matchesQuery = item.title
@@ -3350,11 +3395,7 @@ function DownloadsPage({
     fetch("/api/documents")
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.length > 0) {
-          const allowedCategories = ["Form", "Syllabus", "Prospectus", "Circular", "Notice", "Study Material", "Notes"];
-          const publicDocs = data.filter((d: any) => allowedCategories.includes(d.category));
-          setDbDocs(publicDocs);
-        }
+        if (data && data.length > 0) setDbDocs(data);
       })
       .catch((e) => console.error(e));
   }, []);
@@ -3362,15 +3403,15 @@ function DownloadsPage({
   const displayRows: any[] =
     dbDocs.length > 0
       ? dbDocs.map((doc) => ({
-        title: doc.title,
-        category: doc.category + "s",
-        date: doc.createdAt
-          ? new Date(doc.createdAt).toLocaleDateString()
-          : "Latest",
-        size: Math.round(doc.size / 1024) + " KB",
-        type: doc.contentType.includes("pdf") ? "PDF" : "Doc",
-        id: doc._id,
-      }))
+          title: doc.title,
+          category: doc.category + "s",
+          date: doc.createdAt
+            ? new Date(doc.createdAt).toLocaleDateString()
+            : "Latest",
+          size: Math.round(doc.size / 1024) + " KB",
+          type: doc.contentType.includes("pdf") ? "PDF" : "Doc",
+          id: doc._id,
+        }))
       : documentRows;
 
   const rows = displayRows.filter(
@@ -4045,12 +4086,14 @@ function AdminShell({
   notify,
   selectedProgrammeId,
   setSelectedProgrammeId,
+  onLogout,
 }: {
   page: Page;
   navigate: Navigate;
   notify: (message: string) => void;
   selectedProgrammeId: string | null;
   setSelectedProgrammeId: (id: string | null) => void;
+  onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const pageTitle =
@@ -4089,12 +4132,20 @@ function AdminShell({
             </button>
           ))}
         </nav>
-        <button
-          onClick={() => navigate("home")}
-          className="absolute bottom-0 left-0 flex h-16 w-full items-center gap-3 border-t border-white/10 px-6 text-sm text-stone-300 hover:bg-white/5 hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to public website
-        </button>
+        <div className="absolute bottom-0 left-0 w-full border-t border-white/10">
+          <button
+            onClick={onLogout}
+            className="flex h-12 w-full items-center gap-3 px-6 text-sm text-stone-300 hover:bg-[#a1283c] hover:text-white transition-colors"
+          >
+            <LogOut className="h-4 w-4" /> Logout Admin
+          </button>
+          <button
+            onClick={() => navigate("home")}
+            className="flex h-12 w-full items-center gap-3 px-6 text-sm text-stone-300 hover:bg-white/5 hover:text-white border-t border-white/5"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to public website
+          </button>
+        </div>
       </aside>
       <div className="lg:pl-[252px]">
         <header className="sticky top-0 z-40 flex h-[72px] items-center border-b border-stone-200 bg-white px-4 md:px-7">
@@ -4175,42 +4226,42 @@ function AdminDashboard({ navigate }: { navigate: Navigate }) {
     icon: LucideIcon;
     color: string;
   }[] = [
-      {
-        label: "Total Students",
-        value: data ? data.metrics.totalStudents.toString() : "-",
-        change: "Registered users",
-        icon: Users,
-        color: "bg-stone-50 text-stone-700",
-      },
-      {
-        label: "Published Results",
-        value: data ? data.metrics.publishedResults.toString() : "-",
-        change: "Live records",
-        icon: FileCheck2,
-        color: "bg-lime-50 text-lime-700",
-      },
-      {
-        label: "Pending Results",
-        value: data ? data.metrics.pendingResults.toString() : "-",
-        change: "Requires review",
-        icon: Clock3,
-        color: "bg-amber-50 text-amber-700",
-      },
-      {
-        label: "Total Programmes",
-        value: data ? data.metrics.totalProgrammes.toString() : "-",
-        change: "Active offerings",
-        icon: CalendarDays,
-        color: "bg-violet-50 text-violet-700",
-      },
-      {
-        label: "Total Documents",
-        value: data ? data.metrics.totalDocuments.toString() : "-",
-        change: "Downloads available",
-        icon: Download,
-        color: "bg-orange-50 text-orange-700",
-      },
-    ];
+    {
+      label: "Total Students",
+      value: data ? data.metrics.totalStudents.toString() : "-",
+      change: "Registered users",
+      icon: Users,
+      color: "bg-stone-50 text-stone-700",
+    },
+    {
+      label: "Published Results",
+      value: data ? data.metrics.publishedResults.toString() : "-",
+      change: "Live records",
+      icon: FileCheck2,
+      color: "bg-lime-50 text-lime-700",
+    },
+    {
+      label: "Pending Results",
+      value: data ? data.metrics.pendingResults.toString() : "-",
+      change: "Requires review",
+      icon: Clock3,
+      color: "bg-amber-50 text-amber-700",
+    },
+    {
+      label: "Total Programmes",
+      value: data ? data.metrics.totalProgrammes.toString() : "-",
+      change: "Active offerings",
+      icon: CalendarDays,
+      color: "bg-violet-50 text-violet-700",
+    },
+    {
+      label: "Total Documents",
+      value: data ? data.metrics.totalDocuments.toString() : "-",
+      change: "Downloads available",
+      icon: Download,
+      color: "bg-orange-50 text-orange-700",
+    },
+  ];
 
   return (
     <>
@@ -4307,10 +4358,10 @@ function AdminDashboard({ navigate }: { navigate: Navigate }) {
                   <strong className="text-3xl text-stone-900">
                     {data?.metrics.totalResults > 0
                       ? Math.round(
-                        (data.metrics.publishedResults /
-                          data.metrics.totalResults) *
-                        100,
-                      )
+                          (data.metrics.publishedResults /
+                            data.metrics.totalResults) *
+                            100,
+                        )
                       : 0}
                     %
                   </strong>
@@ -4472,7 +4523,7 @@ function AdminResults({
   const [dbResults, setDbResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [editingPrintDate, setEditingPrintDate] = useState<{ id: string, date: string } | null>(null);
+  const [editingPrintDate, setEditingPrintDate] = useState<{id: string, date: string} | null>(null);
 
   const savePrintDate = async (id: string) => {
     if (!editingPrintDate) return;
@@ -4513,6 +4564,18 @@ function AdminResults({
     fetchResults();
   }, []);
 
+  async function backfillVerificationIds() {
+    if (!confirm("This will generate Verification IDs for all records that are missing one. Continue?")) return;
+    try {
+      const res = await fetch("/api/results?recompute=backfill-verificationid", { method: "PATCH" });
+      const data = await res.json();
+      notify(data.message || "Done!");
+      fetchResults();
+    } catch (e) {
+      alert("Failed to backfill IDs");
+    }
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this result?")) return;
     try {
@@ -4552,7 +4615,13 @@ function AdminResults({
         title="Result Management"
         text="Manage, validate and publish examination results."
         actions={
-          <>
+        <>
+            <Button
+              variant="secondary"
+              onClick={backfillVerificationIds}
+            >
+              <ShieldCheck className="h-4 w-4" /> Generate Missing IDs
+            </Button>
             <Button
               variant="secondary"
               onClick={() => navigate("admin-import")}
@@ -4614,6 +4683,7 @@ function AdminResults({
                 {[
                   "Student",
                   "Roll Number",
+                  "Verification ID",
                   "Programme",
                   "Exam",
                   "Marks",
@@ -4658,6 +4728,9 @@ function AdminResults({
                     </td>
                     <td className="px-4 py-4 text-stone-500">
                       {row.enrollmentNumber}
+                    </td>
+                    <td className="px-4 py-4 font-mono text-[10px] text-stone-500">
+                      {row.verificationId || "N/A"}
                     </td>
                     <td className="px-4 py-4 text-stone-500">
                       {row.programme}
@@ -4749,6 +4822,7 @@ function AdminImport({
   const [programmesList, setProgrammesList] = useState<any[]>([]);
   const [selectedProgTitle, setSelectedProgTitle] = useState("");
   const [targetProgramme, setTargetProgramme] = useState<any>(null);
+  const [resultDate, setResultDate] = useState("");
 
   const steps = [
     "Upload File",
@@ -4838,7 +4912,7 @@ function AdminImport({
             (k) =>
               k.toLowerCase() === pSub.name.toLowerCase() ||
               k.toLowerCase().replace(/_?(th|pr|ia|total)$/g, "") ===
-              pSub.name.toLowerCase(),
+                pSub.name.toLowerCase(),
           );
           const scoreVal = matchedKey ? Number(row[matchedKey]) || 0 : 0;
           subjects.push({
@@ -4929,15 +5003,14 @@ function AdminImport({
         grandTotal,
         percentage: Number(
           row[mapping.percentage] ||
-          (totalMaxMarks > 0
-            ? ((grandTotal / totalMaxMarks) * 100).toFixed(2)
-            : 0),
+            (totalMaxMarks > 0
+              ? ((grandTotal / totalMaxMarks) * 100).toFixed(2)
+              : 0),
         ),
         resultStatus: String(
           row[mapping.resultStatus] || (allSubjectsPassed ? "PASS" : "FAIL"),
         ).trim(),
-        printDate: row[mapping.printDate] ? new Date(row[mapping.printDate]).toISOString().split("T")[0] : "",
-        examCenter: String(row[mapping.examCenter] || "").trim(),
+        printDate: resultDate ? new Date(resultDate).toISOString().split("T")[0] : (row[mapping.printDate] ? new Date(row[mapping.printDate]).toISOString().split("T")[0] : ""),
         isValid,
       });
     });
@@ -4951,36 +5024,12 @@ function AdminImport({
     setUploading(true);
     try {
       const validRows = validatedData.filter((r) => r.isValid);
-      let res = await fetch("/api/results", {
+      const res = await fetch("/api/results", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validRows),
       });
-
-      if (!res.ok) {
-        let errData;
-        try {
-          errData = await res.json();
-        } catch {
-          throw new Error(await res.text());
-        }
-
-        if (res.status === 409 && errData.conflictType === "student_mismatch") {
-          if (window.confirm(errData.error)) {
-            res = await fetch("/api/results?forceUpdateStudent=true", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(validRows),
-            });
-            if (!res.ok) throw new Error(await res.text());
-          } else {
-            return; // Cancelled by user
-          }
-        } else {
-          throw new Error(errData.error || JSON.stringify(errData));
-        }
-      }
-
+      if (!res.ok) throw new Error(await res.text());
       const resData = await res.json();
       notify(resData.message || "Results uploaded successfully!");
       setConfirm(false);
@@ -5004,7 +5053,6 @@ function AdminImport({
     { key: "grandTotal", label: "Grand Total" },
     { key: "percentage", label: "Percentage" },
     { key: "resultStatus", label: "Result Status" },
-    { key: "examCenter", label: "Exam Center" },
   ];
 
   return (
@@ -5125,6 +5173,19 @@ function AdminImport({
                   </option>
                 ))}
               </select>
+
+              <h2 className="font-bold text-stone-800 text-sm mt-4">
+                Global Result Date (Optional)
+              </h2>
+              <p className="text-xs text-stone-400">
+                Select a result date to apply to all imported records. If left blank, today's date will be used.
+              </p>
+              <input
+                type="date"
+                className="w-full h-11 border rounded-lg px-3 text-xs outline-none"
+                value={resultDate}
+                onChange={(e) => setResultDate(e.target.value)}
+              />
             </div>
           )}
 
@@ -5374,13 +5435,13 @@ function AdminAddResult({
   const [rollNumber, setRollNumber] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [dob, setDob] = useState("");
+  const [examCenter, setExamCenter] = useState("");
   const [programme, setProgramme] = useState("");
   const [examination, setExamination] = useState("June Public Examination");
   const [examYear, setExamYear] = useState("2026");
   const [percentage, setPercentage] = useState(0);
   const [resultStatus, setResultStatus] = useState("PASS");
   const [printDate, setPrintDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [examCenter, setExamCenter] = useState("");
 
   const [programmesList, setProgrammesList] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -5470,16 +5531,42 @@ function AdminAddResult({
   const updateSubject = (index: number, field: string, value: any) => {
     const updated = [...subjects];
     updated[index][field] = value;
-    if (["th", "pr", "ia"].includes(field)) {
-      updated[index].total =
+    if (["th", "pr", "ia", "max", "min"].includes(field)) {
+      const total =
         Number(updated[index].th || 0) +
         Number(updated[index].pr || 0) +
         Number(updated[index].ia || 0);
+      updated[index].total = total;
+
+      const max = Number(updated[index].max || 100);
+      const min = Number(updated[index].min || 33);
+
+      if (total < min) {
+        updated[index].grade = "F";
+      } else {
+        const p = max > 0 ? (total / max) * 100 : 0;
+        if (p >= 90) updated[index].grade = "A+";
+        else if (p >= 80) updated[index].grade = "A";
+        else if (p >= 70) updated[index].grade = "B+";
+        else if (p >= 60) updated[index].grade = "B";
+        else if (p >= 50) updated[index].grade = "C";
+        else if (p >= 40) updated[index].grade = "D";
+        else if (p >= 33) updated[index].grade = "E";
+        else updated[index].grade = "F";
+      }
     }
     setSubjects(updated);
   };
 
   const grandTotal = subjects.reduce((sum, s) => sum + (s.total || 0), 0);
+
+  useEffect(() => {
+    const totalMax = subjects.reduce((sum, s) => sum + (Number(s.max) || 100), 0);
+    if (totalMax > 0) {
+      const p = (grandTotal / totalMax) * 100;
+      setPercentage(Number(p.toFixed(2)));
+    }
+  }, [grandTotal, subjects]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -5494,6 +5581,7 @@ function AdminAddResult({
         programme,
         examination,
         examYear,
+        examCenter,
         subjects,
         grandTotal,
         percentage: Number(percentage) || 0,
@@ -5501,36 +5589,13 @@ function AdminAddResult({
         printDate,
       };
 
-      let res = await fetch("/api/results", {
+      const res = await fetch("/api/results", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        let errData;
-        try {
-          errData = await res.json();
-        } catch {
-          throw new Error(await res.text());
-        }
-
-        if (res.status === 409 && errData.conflictType === "student_mismatch") {
-          if (window.confirm(errData.error)) {
-            res = await fetch("/api/results?forceUpdateStudent=true", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            if (!res.ok) throw new Error(await res.text());
-          } else {
-            return; // Cancelled by user
-          }
-        } else {
-          throw new Error(errData.error || JSON.stringify(errData));
-        }
-      }
-
+      if (!res.ok) throw new Error(await res.text());
       notify("Manual result created successfully!");
       navigate("admin-results");
     } catch (err: any) {
@@ -5656,6 +5721,17 @@ function AdminAddResult({
                 className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none"
                 value={examYear}
                 onChange={(e) => setExamYear(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Examination Center
+              </label>
+              <input
+                className="w-full rounded border border-stone-200 p-2.5 text-sm focus:border-[#a1283c] outline-none"
+                value={examCenter}
+                onChange={(e) => setExamCenter(e.target.value)}
+                placeholder="Center Name/Code"
               />
             </div>
             <div>
@@ -6248,7 +6324,7 @@ function AdminStudents({ notify }: { notify: (message: string) => void }) {
                   </span>
                   <span className="text-stone-800 font-bold">
                     {selectedStudent.programmes &&
-                      selectedStudent.programmes.length > 0
+                    selectedStudent.programmes.length > 0
                       ? selectedStudent.programmes.join(", ")
                       : "None"}
                   </span>
@@ -6435,8 +6511,8 @@ function AdminExams({ notify }: { notify: (message: string) => void }) {
                     <td className="px-4 py-4 text-stone-500">
                       {row.registrationStartDate
                         ? new Date(
-                          row.registrationStartDate,
-                        ).toLocaleDateString()
+                            row.registrationStartDate,
+                          ).toLocaleDateString()
                         : "-"}
                     </td>
                     <td className="px-4 py-4 text-stone-500">
@@ -7008,9 +7084,7 @@ function AdminDownloads({ notify }: { notify: (message: string) => void }) {
       const res = await fetch("/api/documents");
       if (res.ok) {
         const data = await res.json();
-        const allowedCategories = ["Form", "Syllabus", "Prospectus", "Circular", "Notice", "Study Material", "Notes"];
-        const filteredDocs = (data || []).filter((d: any) => allowedCategories.includes(d.category));
-        setDocs(filteredDocs);
+        setDocs(data || []);
       }
       const pRes = await fetch("/api/programmes");
       if (pRes.ok) {
@@ -7339,10 +7413,6 @@ function AdminSettings({ notify }) {
 
   React.useEffect(() => {
     setFv({
-      "global.logo.image": cmsData["global.logo.image"] || "",
-      "global.logo.text_hindi": cmsData["global.logo.text_hindi"] || "थार विद्यालय एवं तकनीकी शिक्षा बोर्ड",
-      "global.logo.text_english": cmsData["global.logo.text_english"] || "Thar Vidyalaya Evam Takniki Shiksha Board",
-      "global.logo.subtitle": cmsData["global.logo.subtitle"] || "EXAMINATION & CERTIFICATION AUTHORITY",
       "home.hero.title":
         cmsData["home.hero.title"] ||
         "Excellence in Education & Skill Development",
@@ -7359,7 +7429,7 @@ function AdminSettings({ notify }) {
         "Committed to accessible, transparent and quality education",
       "home.about.text":
         cmsData["home.about.text"] ||
-        "The Thar Vidyalaya Evam Takniki Shiksha Board concept supports learners through reliable examinations, fair assessment, secure certification and accessible digital services.",
+        "The Thar Board of School and Technical Education concept supports learners through reliable examinations, fair assessment, secure certification and accessible digital services.",
       "home.results.title":
         cmsData["home.results.title"] || "Recently declared examinations",
       "home.results.text":
@@ -7405,7 +7475,7 @@ function AdminSettings({ notify }) {
         cmsData["programmes.hero.text"] ||
         "Explore our wide range of academic and vocational programmes.",
       "org.name":
-        cmsData["org.name"] || "Thar Vidyalaya Evam Takniki Shiksha Board",
+        cmsData["org.name"] || "Thar Board of School and Technical Education",
       "org.tagline":
         cmsData["org.tagline"] || "Examination & Certification Authority",
       "org.email": cmsData["org.email"] || "help@tbste.edu",
@@ -7867,35 +7937,19 @@ function AdminSettings({ notify }) {
               </p>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <CMSImageUpload
+                  <CMSField
                     fv={fv}
-                    handleImg={handleImg}
-                    label="Board Logo"
-                    fkey="global.logo.image"
+                    set={set}
+                    label="Organization Name"
+                    fkey="org.name"
                   />
                 </div>
                 <div className="md:col-span-2">
                   <CMSField
                     fv={fv}
                     set={set}
-                    label="Board Name (Hindi)"
-                    fkey="global.logo.text_hindi"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <CMSField
-                    fv={fv}
-                    set={set}
-                    label="Organization Name / Board Name (English)"
-                    fkey="global.logo.text_english"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <CMSField
-                    fv={fv}
-                    set={set}
-                    label="Official Tagline / Subtitle"
-                    fkey="global.logo.subtitle"
+                    label="Official Tagline"
+                    fkey="org.tagline"
                   />
                 </div>
               </div>
@@ -8865,7 +8919,7 @@ function StudentLoginPage({ navigate }: { navigate: Navigate }) {
         const matched = students.find(
           (s: any) =>
             s.enrollmentNumber.toLowerCase() ===
-            enrollment.trim().toLowerCase() &&
+              enrollment.trim().toLowerCase() &&
             s.dob &&
             s.dob.substring(0, 10) === dob,
         );
@@ -9187,7 +9241,7 @@ function SystemSemesters({ notify }: { notify: (msg: string) => void }) {
         fetchSemesters();
         setFormData({ name: "", course: "", academicYear: "", isActive: true });
       }
-    } catch (e) { }
+    } catch (e) {}
   };
   const del = async (id: string) => {
     if (!confirm("Are you sure?")) return;
@@ -9284,7 +9338,7 @@ function SystemVerification({ notify }: { notify: (msg: string) => void }) {
     try {
       // Dummy endpoint interaction
       notify("Student verified successfully!");
-    } catch (e) { }
+    } catch (e) {}
   };
 
   return (
@@ -9361,7 +9415,7 @@ function SystemSubjects({ notify }: { notify: (msg: string) => void }) {
       if (resSub.ok) setSubjects(await resSub.json());
       const resSem = await fetch("/api/semesters");
       if (resSem.ok) setSemesters(await resSem.json());
-    } catch (e) { }
+    } catch (e) {}
   };
   useEffect(() => {
     fetchData();
@@ -9384,7 +9438,7 @@ function SystemSubjects({ notify }: { notify: (msg: string) => void }) {
         fetchData();
         setFormData({ ...formData, name: "", code: "" });
       }
-    } catch (e) { }
+    } catch (e) {}
   };
   const del = async (id: string) => {
     if (!confirm("Are you sure?")) return;
@@ -9844,7 +9898,7 @@ function StudentOnlineExamView({
           );
         }
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   useEffect(() => {
@@ -9927,7 +9981,7 @@ function StudentOnlineExamView({
         setActiveExam(null);
         fetchExams();
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   if (loading)
@@ -10127,7 +10181,7 @@ function StudentPortalShell({
         ).then((r) => r.json()),
         fetch(
           "/api/students?search=" +
-          encodeURIComponent(session.enrollmentNumber),
+            encodeURIComponent(session.enrollmentNumber),
         ).then((r) => r.json()),
         fetch("/api/exams").then((r) => r.json()),
         fetch("/api/documents").then((r) => r.json()),
@@ -10451,7 +10505,7 @@ function StudentPortalShell({
                         />
                         <div>
                           <h1 className="text-2xl md:text-3xl font-extrabold text-[#440d16] uppercase tracking-wider">
-                            Thar Vidyalaya Evam Takniki Shiksha Board
+                            Thar Board of School & Technical Education
                           </h1>
                           <p className="text-[#8d1c2f] font-bold text-sm tracking-widest uppercase mt-1">
                             Examination & Certification Authority
@@ -10496,8 +10550,8 @@ function StudentPortalShell({
                         <span className="w-2/3 font-semibold text-stone-900">
                           {studentDetails?.dob
                             ? new Date(studentDetails.dob).toLocaleDateString(
-                              "en-GB",
-                            )
+                                "en-GB",
+                              )
                             : "-"}
                         </span>
                       </div>
@@ -10663,7 +10717,7 @@ function StudentPortalShell({
                           Controller of Examinations
                         </div>
                         <div className="text-xs text-stone-500 font-medium">
-                          Thar Vidyalaya Evam Takniki Shiksha Board
+                          Thar Board of School & Technical Education
                         </div>
                       </div>
                     </div>
@@ -11496,7 +11550,7 @@ function AdminProgrammeDashboard({
       if (res.ok) {
         setJoinedStudents(await res.json());
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   const handleStartConduction = async (state: string) => {
@@ -11525,7 +11579,7 @@ function AdminProgrammeDashboard({
         setConductionExam(data.exam);
         fetchData();
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   const handleOpenGrading = async (exam: any) => {
@@ -11535,7 +11589,7 @@ function AdminProgrammeDashboard({
       if (res.ok) {
         setStudentExams(await res.json());
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   const handleGradeStudent = (se: any) => {
@@ -11561,7 +11615,7 @@ function AdminProgrammeDashboard({
         setActiveGradingExam(null);
         handleOpenGrading(gradingExam);
       }
-    } catch (e) { }
+    } catch (e) {}
   };
 
   const handleDeclareResults = async () => {
@@ -13488,7 +13542,7 @@ export default function App({ initialPage = "home" }: { initialPage?: Page }) {
       const map = {};
       data.forEach((d) => (map[d.key] = d.value));
       setCmsData(map);
-    } catch (e) { }
+    } catch (e) {}
   }, []);
 
   useEffect(() => {
@@ -13541,6 +13595,7 @@ export default function App({ initialPage = "home" }: { initialPage?: Page }) {
             notify={notify}
             selectedProgrammeId={selectedProgrammeId}
             setSelectedProgrammeId={setSelectedProgrammeId}
+            onLogout={handleAdminLogout}
           />
         ) : (
           <AdminLoginPage onLogin={handleAdminLogin} navigate={navigate} />

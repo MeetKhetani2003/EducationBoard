@@ -21,7 +21,6 @@ function detectMapping(headers: string[]) {
     percentage: find(['percentage', 'percent', '%', 'pct', 'percnt']),
     resultStatus: find(['status', 'result', 'resultstatus', 'pass', 'passfail']),
     printDate: find(['printdate', 'print', 'publisheddate', 'published']),
-    examCenter: find(['examcenter', 'center', 'centre', 'examcentre', 'centrename', 'centercode']),
   };
 }
 

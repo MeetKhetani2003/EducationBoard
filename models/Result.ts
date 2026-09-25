@@ -9,6 +9,8 @@ export interface IResult extends Document {
   programme: string;
   examination: string;
   examYear: string;
+  examCenter?: string;
+  verificationId?: string;
   printDate: Date;
   subjects: Array<{
     sNo: string;
@@ -24,7 +26,6 @@ export interface IResult extends Document {
   grandTotal: number;
   percentage: number;
   resultStatus: string;
-  examCenter?: string;
 }
 
 const ResultSchema: Schema = new Schema({
@@ -36,6 +37,8 @@ const ResultSchema: Schema = new Schema({
   programme: { type: String, required: true },
   examination: { type: String, required: true },
   examYear: { type: String, required: true },
+  examCenter: { type: String },
+  verificationId: { type: String },
   printDate: { type: Date, default: Date.now },
   subjects: [{
     sNo: String,
@@ -50,8 +53,7 @@ const ResultSchema: Schema = new Schema({
   }],
   grandTotal: { type: Number, required: true },
   percentage: { type: Number, required: true },
-  resultStatus: { type: String, required: true },
-  examCenter: { type: String, default: "" }
+  resultStatus: { type: String, required: true }
 }, { timestamps: true });
 
 // Avoid model recompilation errors in Next.js
