@@ -3334,7 +3334,11 @@ function DownloadsPage({
     fetch("/api/documents")
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.length > 0) setDbDocs(data);
+        if (data && data.length > 0) {
+          const allowedCategories = ["Form", "Syllabus", "Prospectus", "Circular", "Notice", "Study Material", "Notes"];
+          const publicDocs = data.filter((d: any) => allowedCategories.includes(d.category));
+          setDbDocs(publicDocs);
+        }
       })
       .catch((e) => console.error(e));
   }, []);
@@ -6988,7 +6992,9 @@ function AdminDownloads({ notify }: { notify: (message: string) => void }) {
       const res = await fetch("/api/documents");
       if (res.ok) {
         const data = await res.json();
-        setDocs(data || []);
+        const allowedCategories = ["Form", "Syllabus", "Prospectus", "Circular", "Notice", "Study Material", "Notes"];
+        const filteredDocs = (data || []).filter((d: any) => allowedCategories.includes(d.category));
+        setDocs(filteredDocs);
       }
       const pRes = await fetch("/api/programmes");
       if (pRes.ok) {
