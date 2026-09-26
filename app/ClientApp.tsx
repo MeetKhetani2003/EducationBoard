@@ -6396,7 +6396,7 @@ function AdminExams({ notify }: { notify: (message: string) => void }) {
           examYear,
           registrationStartDate: regStart,
           examStartDate: examStart,
-          printDate,
+          resultDate: printDate,
           status,
         }),
       });
@@ -6529,8 +6529,8 @@ function AdminExams({ notify }: { notify: (message: string) => void }) {
                         : "-"}
                     </td>
                     <td className="px-4 py-4 text-stone-500">
-                      {row.printDate
-                        ? new Date(row.printDate).toLocaleDateString()
+                      {row.resultDate
+                        ? new Date(row.resultDate).toLocaleDateString()
                         : "-"}
                     </td>
                     <td className="px-4 py-4 text-stone-500">
@@ -11436,7 +11436,7 @@ function AdminProgrammeDashboard({
           examYear,
           registrationStartDate: regStart,
           examStartDate: examStart,
-          printDate,
+          resultDate: printDate,
         }),
       });
       if (res.ok) {
