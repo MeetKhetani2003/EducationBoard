@@ -653,6 +653,7 @@ const navItems: {
     ],
   },
   { label: "Downloads", page: "downloads" },
+  { label: "Gallery", page: "gallery" },
   { label: "Contact", page: "contact" },
 ];
 
@@ -1359,7 +1360,7 @@ function HomePage({ navigate }: { navigate: Navigate }) {
                   Result Update
                 </div>
                 <p className="mt-1 text-sm font-semibold md:text-base">
-                  Results for Secondary, Senior Secondary, Vocational, and Diploma (Computer, Beautician, etc.) have been declared.
+                  {cmsData["home.update.text"] || "Results for Secondary, Senior Secondary, Vocational, and Diploma (Computer, Beautician, etc.) have been declared."}
                 </p>
               </div>
             </div>
@@ -1732,34 +1733,14 @@ function AboutPage({ navigate }: { navigate: Navigate }) {
           <div>
             <SectionHeading eyebrow="Our Organization" title={orgTitle} />
             <div className="space-y-4 text-[15px] leading-7 text-stone-600">
-              <p>
-                The Thar Board of School &amp; Technical Education was
-                established Under Indian Trust Act 1882 IV48/2013 Registred with
-                planning commission (New Delhi), Govt. of India. TBSTE is a ISO
-                9001 : 2008 Certified Organization. The Board head office is
-                situated at Centre of India District-Etawah, Uttar Pradesh.
-              </p>
-              <p>
-                The TBSTE is reputed to disseminate life oriented education and
-                job oriented Modern education. The board offers secondary &amp;
-                Seinor secondary programmes in regular, Private &amp; Open
-                Schooling mode.
-              </p>
-              <p>
-                TBSTE is the only Board who has introduced the Door Step
-                education for the candidate who are not able even to go school.
-                For Such Candidates Board Deside to setup a open schooling
-                branch which provide the secondary &amp; seinor secondary
-                education at their door step. TBSTE also provided free education
-                to candidates who belong from tribal areas, rular areas, below
-                poority line, widow, handicape.
-              </p>
-              <p>
-                TBSTE is regular working on the curriculam of new courses
-                (Certificate Course, Diploma Course) which will be launched in
-                up coming years. Our Hon&apos;ble Chairman is trying to impart
-                knowledge to large number of Students.
-              </p>
+              {(
+                safeCms["about.org.text"] ||
+                "The Thar Board of School & Technical Education was established Under Indian Trust Act 1882 IV48/2013 Registred with planning commission (New Delhi), Govt. of India. TBSTE is a ISO 9001 : 2008 Certified Organization. The Board head office is situated at Centre of India District-Etawah, Uttar Pradesh.\n\nThe TBSTE is reputed to disseminate life oriented education and job oriented Modern education. The board offers secondary & Seinor secondary programmes in regular, Private & Open Schooling mode.\n\nTBSTE is the only Board who has introduced the Door Step education for the candidate who are not able even to go school. For Such Candidates Board Deside to setup a open schooling branch which provide the secondary & seinor secondary education at their door step. TBSTE also provided free education to candidates who belong from tribal areas, rular areas, below poority line, widow, handicape.\n\nTBSTE is regular working on the curriculam of new courses (Certificate Course, Diploma Course) which will be launched in up coming years. Our Hon'ble Chairman is trying to impart knowledge to large number of Students."
+              )
+                .split("\n")
+                .map((paragraph, index) =>
+                  paragraph.trim() ? <p key={index}>{paragraph}</p> : null,
+                )}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-6 border-t border-stone-200 pt-7">
               <div>
@@ -2557,15 +2538,6 @@ function ResultDetailPage({
                   ["Examination", resultData.examination || "N/A"],
                   ["Year", resultData.examYear || "N/A"],
                   ["Examination Center", resultData.examCenter || "N/A"],
-                  [
-                    "Result Date",
-                    resultData.printDate
-                      ? new Date(resultData.printDate).toLocaleDateString(
-                          "en-GB",
-                          { day: "numeric", month: "long", year: "numeric" },
-                        )
-                      : "N/A",
-                  ],
                 ].map(([label, value]) => (
                   <div
                     key={label as string}
@@ -2699,16 +2671,32 @@ function ResultDetailPage({
               </div>
 
               <div className="mt-8 flex flex-col md:flex-row items-center justify-between border-2 border-[#8d1c2f] bg-[#fdf5f6] p-6 rounded-lg">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
-                    Result Status
-                  </span>
-                  <strong className="block text-3xl text-[#4a131c] uppercase">
-                    {resultData.resultStatus}{" "}
-                    <span className="text-xl font-medium">
-                      {resultData.resultStatus === "PASS" ? "(Qualified)" : ""}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                      Result Status
                     </span>
-                  </strong>
+                    <strong className="block text-3xl text-[#4a131c] uppercase">
+                      {resultData.resultStatus}{" "}
+                      <span className="text-xl font-medium">
+                        {resultData.resultStatus === "PASS" ? "(Qualified)" : ""}
+                      </span>
+                    </strong>
+                  </div>
+                  <div className="hidden sm:block w-px h-12 bg-[#8d1c2f]/20"></div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                      Result Date
+                    </span>
+                    <strong className="block text-2xl text-[#4a131c]">
+                      {resultData.printDate
+                        ? new Date(resultData.printDate).toLocaleDateString(
+                            "en-GB",
+                            { day: "numeric", month: "long", year: "numeric" },
+                          )
+                        : "N/A"}
+                    </strong>
+                  </div>
                 </div>
                 <div className="mt-6 md:mt-0 text-center">
                   <div className="font-[cursive] text-4xl text-[#8d1c2f] mb-2 transform -rotate-2">
@@ -3402,7 +3390,9 @@ function DownloadsPage({
 
   const displayRows: any[] =
     dbDocs.length > 0
-      ? dbDocs.map((doc) => ({
+      ? dbDocs
+          .filter((doc) => doc.category !== "News" && doc.category !== "Gallery")
+          .map((doc) => ({
           title: doc.title,
           category: doc.category + "s",
           date: doc.createdAt
@@ -4823,6 +4813,7 @@ function AdminImport({
   const [selectedProgTitle, setSelectedProgTitle] = useState("");
   const [targetProgramme, setTargetProgramme] = useState<any>(null);
   const [resultDate, setResultDate] = useState("");
+  const [examCenter, setExamCenter] = useState("");
 
   const steps = [
     "Upload File",
@@ -4999,6 +4990,7 @@ function AdminImport({
           row[mapping.examination] || "Public Examination",
         ).trim(),
         examYear: String(row[mapping.examYear] || "2026").trim(),
+        examCenter: examCenter ? examCenter : (row[mapping.examCenter] || "N/A"),
         subjects,
         grandTotal,
         percentage: Number(
@@ -5031,6 +5023,7 @@ function AdminImport({
       });
       if (!res.ok) throw new Error(await res.text());
       const resData = await res.json();
+      await fetch("/api/results?recompute=backfill-verificationid", { method: "PATCH" });
       notify(resData.message || "Results uploaded successfully!");
       setConfirm(false);
       navigate("admin-results");
@@ -5048,6 +5041,7 @@ function AdminImport({
     { key: "fatherName", label: "Father's Name" },
     { key: "dob", label: "Date of Birth (Required)" },
     { key: "programme", label: "Programme" },
+    { key: "examCenter", label: "Exam Center" },
     { key: "examination", label: "Examination" },
     { key: "examYear", label: "Examination Year" },
     { key: "grandTotal", label: "Grand Total" },
@@ -5185,6 +5179,20 @@ function AdminImport({
                 className="w-full h-11 border rounded-lg px-3 text-xs outline-none"
                 value={resultDate}
                 onChange={(e) => setResultDate(e.target.value)}
+              />
+
+              <h2 className="font-bold text-stone-800 text-sm mt-4">
+                Global Exam Center (Optional)
+              </h2>
+              <p className="text-xs text-stone-400">
+                Specify an exam center to apply to all imported records. If left blank, it will map from the Excel file if available.
+              </p>
+              <input
+                type="text"
+                placeholder="e.g. Center Name / Code"
+                className="w-full h-11 border rounded-lg px-3 text-xs outline-none"
+                value={examCenter}
+                onChange={(e) => setExamCenter(e.target.value)}
               />
             </div>
           )}
@@ -7149,7 +7157,8 @@ function AdminDownloads({ notify }: { notify: (message: string) => void }) {
   };
 
   const rows = docs.filter((row) =>
-    (row.title || "").toLowerCase().includes(query.toLowerCase()),
+    (row.title || "").toLowerCase().includes(query.toLowerCase()) &&
+    row.category !== "News" && row.category !== "Gallery"
   );
 
   return (
@@ -7451,6 +7460,9 @@ function AdminSettings({ notify }) {
       "home.news.text":
         cmsData["home.news.text"] ||
         "Important academic updates, notices and circulars from the examination authority.",
+      "home.update.text":
+        cmsData["home.update.text"] ||
+        "Results for Secondary, Senior Secondary, Vocational, and Diploma (Computer, Beautician, etc.) have been declared.",
       "about.hero.title": cmsData["about.hero.title"] || "About the Board",
       "about.hero.text":
         cmsData["about.hero.text"] ||
@@ -7458,6 +7470,9 @@ function AdminSettings({ notify }) {
       "about.org.title":
         cmsData["about.org.title"] ||
         "Education that remains open, credible and connected",
+      "about.org.text":
+        cmsData["about.org.text"] ||
+        "The Thar Board of School & Technical Education was established Under Indian Trust Act 1882 IV48/2013 Registred with planning commission (New Delhi), Govt. of India. TBSTE is a ISO 9001 : 2008 Certified Organization. The Board head office is situated at Centre of India District-Etawah, Uttar Pradesh.\n\nThe TBSTE is reputed to disseminate life oriented education and job oriented Modern education. The board offers secondary & Seinor secondary programmes in regular, Private & Open Schooling mode.\n\nTBSTE is the only Board who has introduced the Door Step education for the candidate who are not able even to go school. For Such Candidates Board Deside to setup a open schooling branch which provide the secondary & seinor secondary education at their door step. TBSTE also provided free education to candidates who belong from tribal areas, rular areas, below poority line, widow, handicape.\n\nTBSTE is regular working on the curriculam of new courses (Certificate Course, Diploma Course) which will be launched in up coming years. Our Hon'ble Chairman is trying to impart knowledge to large number of Students.",
       "about.mission.text":
         cmsData["about.mission.text"] ||
         "Deliver fair assessment and accessible academic services.",
@@ -7721,6 +7736,21 @@ function AdminSettings({ notify }) {
 
               <div className="border-t border-stone-200 pt-8">
                 <h2 className="text-base font-semibold text-stone-900 mb-1">
+                  Result Update Notification
+                </h2>
+                <div className="space-y-5 mt-4">
+                  <CMSField
+                    fv={fv}
+                    set={set}
+                    label="Update Text"
+                    fkey="home.update.text"
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-stone-200 pt-8">
+                <h2 className="text-base font-semibold text-stone-900 mb-1">
                   Latest Results Section
                 </h2>
                 <div className="space-y-5 mt-4">
@@ -7846,6 +7876,13 @@ function AdminSettings({ notify }) {
                     set={set}
                     label="Section Title"
                     fkey="about.org.title"
+                  />
+                  <CMSField
+                    fv={fv}
+                    set={set}
+                    label="Organization Text"
+                    fkey="about.org.text"
+                    rows={12}
                   />
                   <CMSField
                     fv={fv}
