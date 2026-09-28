@@ -356,16 +356,11 @@ function Logo({
         />
       </div>
       <div className="min-w-0 flex flex-col justify-center leading-[1.2] text-left">
-        <div
-          className={`font-bold tracking-wide ${compact ? "text-[14px]" : "text-[16px] md:text-[18px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"} drop-shadow-sm`}
-        >
-          थार विद्यालय एवं तकनीकी शिक्षा बोर्ड
-        </div>
-        <div
-          className={`font-bold tracking-[0.02em] ${compact ? "text-[14px]" : "text-[16px] md:text-[18px]"} ${inverse ? "text-[#e8c476]" : "text-[#440d16]"}`}
-        >
-          THAR BOARD OF SCHOOL & TECHNICAL EDUCATION
-        </div>
+        <img
+          src="/logo-sidetext.png"
+          alt="Thar Board Side Text"
+          className={`object-contain object-left ${compact ? "h-8" : "h-10 md:h-12"} ${inverse ? "brightness-0 invert" : ""}`}
+        />
         <div
           className={`mt-0.5 font-semibold tracking-[0.15em] uppercase ${compact ? "text-[8px]" : "text-[9px] md:text-[10px]"} ${inverse ? "text-[#e8c476]/80" : "text-[#440d16]/80"}`}
         >
@@ -2664,7 +2659,19 @@ function ResultDetailPage({
                       <td className="px-4 py-4 text-center font-bold text-xl text-[#8d1c2f] border-r border-stone-300">
                         {resultData.grandTotal}
                       </td>
-                      <td></td>
+                      <td className="px-4 py-4 text-center font-bold text-xl text-[#8d1c2f]">
+                        {(() => {
+                          const pct = resultData.percentage || 0;
+                          if (pct >= 91) return "A+";
+                          if (pct >= 81) return "A";
+                          if (pct >= 71) return "B+";
+                          if (pct >= 61) return "B";
+                          if (pct >= 51) return "C+";
+                          if (pct >= 41) return "C";
+                          if (pct >= 33) return "D";
+                          return "F";
+                        })()}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -2714,7 +2721,7 @@ function ResultDetailPage({
                     <QrCode className="h-11 w-11 text-[#4a131c]" />
                   </div>
                   <p className="max-w-xs text-xs leading-5 text-stone-500">
-                    Verification ID: TBSTE-R26-1842
+                    Verification ID: {resultData.verificationId || "N/A"}
                     <br />
                     Scan placeholder or use online verification.
                   </p>
@@ -4679,6 +4686,7 @@ function AdminResults({
                   "Marks",
                   "Status",
                   "Print Date",
+                  "Exam Center",
                   "Actions",
                 ].map((item) => (
                   <th key={item} className="px-4 py-3">
@@ -4691,7 +4699,7 @@ function AdminResults({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="p-8 text-center text-stone-400 text-xs"
                   >
                     Loading records from MongoDB...
@@ -4700,7 +4708,7 @@ function AdminResults({
               ) : rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="p-8 text-center text-stone-400 text-xs"
                   >
                     No records found. Upload an Excel file or add results
@@ -4749,6 +4757,9 @@ function AdminResults({
                       ) : (
                         row.printDate ? new Date(row.printDate).toLocaleDateString() : "-"
                       )}
+                    </td>
+                    <td className="px-4 py-4 text-stone-500">
+                      {row.examCenter || "N/A"}
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex gap-1">
@@ -4853,7 +4864,7 @@ function AdminImport({
       if (matched) {
         setTargetProgramme(matched);
         setSelectedProgTitle(matched.title);
-        setStep(3);
+        setStep(2);
       } else {
         setStep(2);
       }
@@ -4951,16 +4962,22 @@ function AdminImport({
 
         Object.values(subjectMap).forEach((s: any, i) => {
           if (!s.name || String(s.name).startsWith("__EMPTY")) return;
-          const totalVal =
-            Number(s.total) || (Number(s.th) || 0) + (Number(s.pr) || 0);
+          const th = Number(s.th) || 0;
+          const pr = Number(s.pr) || 0;
+          const ia = Number(s.ia) || 0;
+          const totalVal = Number(s.total) || (th + pr);
+          
+          // Skip subjects with zero marks across all fields (filters out unmatched columns like Exam Center)
+          if (totalVal === 0 && th === 0 && pr === 0 && ia === 0) return;
+
           subjects.push({
-            sNo: String(i + 1),
+            sNo: String(subjects.length + 1),
             name: s.name,
             max: Number(s.max) || 100,
             min: Number(s.min) || 33,
-            th: Number(s.th) || 0,
-            pr: Number(s.pr) || 0,
-            ia: Number(s.ia) || 0,
+            th,
+            pr,
+            ia,
             total: totalVal,
             grade:
               s.grade || (totalVal >= (Number(s.min) || 33) ? "PASS" : "FAIL"),
@@ -4992,7 +5009,7 @@ function AdminImport({
         examYear: String(row[mapping.examYear] || "2026").trim(),
         examCenter: examCenter ? examCenter : (row[mapping.examCenter] || "N/A"),
         subjects,
-        grandTotal,
+        grandTotal: Number(row[mapping.grandTotal]) || grandTotal,
         percentage: Number(
           row[mapping.percentage] ||
             (totalMaxMarks > 0
@@ -5041,7 +5058,6 @@ function AdminImport({
     { key: "fatherName", label: "Father's Name" },
     { key: "dob", label: "Date of Birth (Required)" },
     { key: "programme", label: "Programme" },
-    { key: "examCenter", label: "Exam Center" },
     { key: "examination", label: "Examination" },
     { key: "examYear", label: "Examination Year" },
     { key: "grandTotal", label: "Grand Total" },

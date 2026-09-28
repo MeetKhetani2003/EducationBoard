@@ -47,6 +47,7 @@ function mapColumns(row: Record<string, any>) {
   const total = find('total', 'grandtotal', 'marksscored', 'obtainedmarks', 'totalmarks', 'marks');
   const percent = find('percentage', 'percent', '%', 'pct', 'percnt');
   const status = find('status', 'result', 'resultstatus', 'pass', 'passfail');
+  const examCenter = find('examcenter', 'center', 'centre', 'examcentre', 'examinationcenter', 'examinationcentre', 'centercode', 'centrecode');
 
   // Parse subjects - look for columns with subject patterns
   const subjectColumns = keys.filter(k => !['enrollment','enrollmentno','enrollmentnumber','roll','rollno','name','studentname','father','fathername','dob','dateofbirth','programme','program','course','exam','examination','year','examyear','total','grandtotal','percentage','percent','status','result'].some(s => k.toLowerCase().replace(/[_\s-]/g, '').includes(s.replace(/[_\s-]/g, ''))));
@@ -135,6 +136,7 @@ function mapColumns(row: Record<string, any>) {
     programme: programme ? String(programme).trim() : 'Senior Secondary',
     examination: exam ? String(exam).trim() : 'Public Examination',
     examYear: year ? String(year).trim() : new Date().getFullYear().toString(),
+    examCenter: examCenter ? String(examCenter).trim() : '',
     subjects,
     grandTotal: Number(total || 0),
     percentage: Math.round(calcPercent * 100) / 100,
@@ -333,6 +335,7 @@ export async function POST(request: Request) {
               programme: String(row.programme || 'Senior Secondary'),
               examination: String(row.examination || 'Public Examination'),
               examYear: String(row.examYear || new Date().getFullYear()),
+              examCenter: row.examCenter ? String(row.examCenter).trim() : '',
               subjects: row.subjects || [],
               grandTotal: Number(row.grandTotal || 0),
               percentage: Number(row.percentage || 0),
@@ -376,6 +379,7 @@ export async function POST(request: Request) {
         programme: String(data.programme || 'Senior Secondary'),
         examination: String(data.examination || 'Public Examination'),
         examYear: String(data.examYear || new Date().getFullYear()),
+        examCenter: data.examCenter ? String(data.examCenter).trim() : '',
         subjects: data.subjects || [],
         grandTotal: Number(data.grandTotal || 0),
         percentage: Number(data.percentage || 0),
