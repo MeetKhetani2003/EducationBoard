@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/db';
 import StudentExam from '../../../models/StudentExam';
 import Exam from '../../../models/Exam';
+import Student from '../../../models/Student';
 
 export async function GET(request: Request) {
   try {
@@ -16,8 +17,22 @@ export async function GET(request: Request) {
     }
 
     if (examId) {
-      const list = await StudentExam.find({ examId });
-      return NextResponse.json(list);
+      const list = await StudentExam.find({ examId }).lean();
+      const enrollments = list.map((item: any) => item.studentEnrollment);
+      const studentDocs = await Student.find({ enrollmentNumber: { $in: enrollments } }).lean();
+      const studentMap = new Map(studentDocs.map((s: any) => [s.enrollmentNumber, s]));
+
+      const enrichedList = list.map((item: any) => {
+        const studentInfo = studentMap.get(item.studentEnrollment);
+        return {
+          ...item,
+          studentName: studentInfo?.name || `Student ${item.studentEnrollment}`,
+          fatherName: studentInfo?.fatherName || '',
+          studentEmail: studentInfo?.email || '',
+        };
+      });
+
+      return NextResponse.json(enrichedList);
     }
 
     return NextResponse.json({ error: 'Parameters missing' }, { status: 400 });
@@ -101,7 +116,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Grading updated successfully', data: updated });
     }
 
+    if (action === 'reset_all') {
+      await StudentExam.deleteMany({ examId });
+      return NextResponse.json({ message: 'All student exam sessions cleared for this exam' });
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(request.url);
+    const examId = searchParams.get('examId');
+    if (!examId) return NextResponse.json({ error: 'examId is required' }, { status: 400 });
+
+    await StudentExam.deleteMany({ examId });
+    return NextResponse.json({ message: 'Exam session records cleared successfully' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

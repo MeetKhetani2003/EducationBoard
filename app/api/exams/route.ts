@@ -6,8 +6,15 @@ export async function GET(request: Request) {
   try {
     await connectToDatabase();
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const search = searchParams.get('search') || '';
     const programme = searchParams.get('programme') || '';
+
+    if (id) {
+      const exam = await Exam.findById(id);
+      if (!exam) return NextResponse.json({ error: 'Exam not found' }, { status: 404 });
+      return NextResponse.json(exam);
+    }
 
     const query: any = {};
     if (search) {

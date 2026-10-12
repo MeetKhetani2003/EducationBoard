@@ -9897,6 +9897,10 @@ function StudentOnlineExamView({
   const [examSession, setExamSession] = useState<any>(null);
   const [timerRemaining, setTimerRemaining] = useState(0);
   const [joined, setJoined] = useState(false);
+  const [studentSessions, setStudentSessions] = useState<Record<string, any>>({});
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submissionReceipt, setSubmissionReceipt] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<{
     mcqs: Record<number, number>;
     theory: Record<number, string>;
@@ -9906,7 +9910,8 @@ function StudentOnlineExamView({
     try {
       const res = await fetch("/api/exams");
       if (res.ok) {
-        setExams(await res.json());
+        const data = await res.json();
+        setExams(Array.isArray(data) ? data : []);
       }
     } catch (e) {
     } finally {
@@ -9914,9 +9919,86 @@ function StudentOnlineExamView({
     }
   };
 
+  // Poll available exams when not inside an active test
   useEffect(() => {
     fetchExams();
-  }, []);
+    if (!joined) {
+      const interval = setInterval(fetchExams, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [joined]);
+
+  // Check student sessions for exams
+  useEffect(() => {
+    if (!student?.enrollmentNumber || exams.length === 0) return;
+    const checkSessions = async () => {
+      const sessionsMap: Record<string, any> = {};
+      for (const ex of exams) {
+        try {
+          const res = await fetch(
+            `/api/student-exams?examId=${ex._id}&studentEnrollment=${student.enrollmentNumber}`
+          );
+          if (res.ok) {
+            const doc = await res.json();
+            if (doc && !doc.error) {
+              sessionsMap[ex._id] = doc;
+            }
+          }
+        } catch (e) {}
+      }
+      setStudentSessions(sessionsMap);
+    };
+    checkSessions();
+  }, [exams, student?.enrollmentNumber]);
+
+  // Real-time polling when joined: auto-detects when admin releases paper or ends exam
+  useEffect(() => {
+    if (!joined || !activeExam?._id) return;
+
+    const pollActiveExam = async () => {
+      try {
+        const res = await fetch(`/api/exams?id=${activeExam._id}`);
+        if (res.ok) {
+          const latest = await res.json();
+          if (latest && latest._id) {
+            // Auto-transition from portal_open to running when admin releases paper
+            if (activeExam.examState === "portal_open" && latest.examState === "running") {
+              notify("Paper released by examination controller! Examination has started.");
+              const durationMins = latest.duration || 120;
+              const startTimeMs = latest.startTime
+                ? new Date(latest.startTime).getTime()
+                : Date.now();
+              const remainingSecs = Math.max(
+                0,
+                Math.round((startTimeMs + durationMins * 60 * 1000 - Date.now()) / 1000)
+              );
+              setTimerRemaining(remainingSecs > 0 ? remainingSecs : durationMins * 60);
+              setActiveExam(latest);
+              return;
+            }
+
+            // Auto-submit if controller concludes exam while student is writing
+            if (activeExam.examState === "running" && latest.examState === "ended") {
+              notify("Examination concluded by the controller! Auto-submitting answers...");
+              handleSubmit(true);
+              return;
+            }
+
+            // Keep paper and state updated in sync
+            if (
+              latest.examState !== activeExam.examState ||
+              JSON.stringify(latest.paper) !== JSON.stringify(activeExam.paper)
+            ) {
+              setActiveExam(latest);
+            }
+          }
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(pollActiveExam, 2000);
+    return () => clearInterval(interval);
+  }, [joined, activeExam, answers]);
 
   const handleJoin = async (exam: any) => {
     try {
@@ -9934,32 +10016,53 @@ function StudentOnlineExamView({
         setExamSession(doc);
         setActiveExam(exam);
         setJoined(true);
-        setAnswers(doc.answers || { mcqs: {}, theory: {} });
+        setSubmissionReceipt(null);
 
+        // Populate any previously chosen answers
+        if (doc.answers) {
+          setAnswers({
+            mcqs: doc.answers.mcqs || {},
+            theory: doc.answers.theory || {},
+          });
+        }
+
+        // Calculate timer
         if (exam.examState === "portal_open") {
-          const expires =
-            new Date(exam.portalOpenTime).getTime() +
-            exam.joiningWindow * 60 * 1000;
+          const openTime = exam.portalOpenTime
+            ? new Date(exam.portalOpenTime).getTime()
+            : Date.now();
+          const windowMins = exam.joiningWindow || 5;
+          const expires = openTime + windowMins * 60 * 1000;
           setTimerRemaining(
-            Math.max(0, Math.round((expires - Date.now()) / 1000)),
+            Math.max(0, Math.round((expires - Date.now()) / 1000)) || windowMins * 60
           );
         } else if (exam.examState === "running") {
-          const expires =
-            new Date(exam.startTime).getTime() + exam.duration * 60 * 1000;
+          const startTime = exam.startTime
+            ? new Date(exam.startTime).getTime()
+            : Date.now();
+          const durationMins = exam.duration || 120;
+          const expires = startTime + durationMins * 60 * 1000;
           setTimerRemaining(
-            Math.max(0, Math.round((expires - Date.now()) / 1000)),
+            Math.max(0, Math.round((expires - Date.now()) / 1000)) || durationMins * 60
           );
         }
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to join examination room.");
       }
-    } catch (e) {}
+    } catch (e) {
+      alert("Network error connecting to exam server.");
+    }
   };
 
+  // Anti-cheating blur protection
   useEffect(() => {
     if (
       !joined ||
       !activeExam ||
       activeExam.examState !== "running" ||
-      examSession?.leftExam
+      examSession?.leftExam ||
+      submissionReceipt
     )
       return;
 
@@ -9982,15 +10085,16 @@ function StudentOnlineExamView({
         fetchExams();
       } else {
         alert(
-          "WARNING: Changing tabs or losing focus is strictly prohibited. Doing it again will submit and lock your exam.",
+          "WARNING: Changing tabs or losing window focus is strictly prohibited during live examinations. Next violation will automatically submit and lock your examination paper."
         );
       }
     };
 
     window.addEventListener("blur", handleBlur);
     return () => window.removeEventListener("blur", handleBlur);
-  }, [joined, activeExam, examSession]);
+  }, [joined, activeExam, examSession, submissionReceipt]);
 
+  // Countdown timer interval
   useEffect(() => {
     if (!joined || timerRemaining <= 0) return;
     const interval = setInterval(() => {
@@ -10007,16 +10111,18 @@ function StudentOnlineExamView({
   }, [joined, timerRemaining]);
 
   const handleTimeOut = async () => {
-    if (activeExam.examState === "portal_open") {
-      notify("Joining window ended! Releasing exam paper.");
+    if (activeExam?.examState === "portal_open") {
+      notify("Joining window elapsed. Rechecking examination status...");
       fetchExams();
-    } else if (activeExam.examState === "running") {
-      notify("Exam duration completed! Saving answers.");
-      handleSubmit();
+    } else if (activeExam?.examState === "running") {
+      notify("Exam time limit reached! Auto-saving and submitting your paper.");
+      handleSubmit(true);
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (force: boolean = false) => {
+    if (!activeExam) return;
+    setSubmitting(true);
     try {
       const res = await fetch("/api/student-exams", {
         method: "POST",
@@ -10029,146 +10135,419 @@ function StudentOnlineExamView({
         }),
       });
       if (res.ok) {
-        notify("Paper submitted successfully!");
-        setJoined(false);
-        setActiveExam(null);
+        const resultData = await res.json();
+        notify("Examination paper submitted successfully!");
+        setShowSubmitModal(false);
+        setSubmissionReceipt({
+          examTitle: activeExam.title,
+          submittedAt: new Date(),
+          mcqsAnswered: Object.keys(answers.mcqs || {}).length,
+          totalMcqs: activeExam.paper?.mcqs?.length || 0,
+          theoryAnswered: Object.keys(answers.theory || {}).filter(
+            (k) => answers.theory[Number(k)]?.trim().length > 0
+          ).length,
+          totalTheory: activeExam.paper?.theory?.length || 0,
+        });
+        setStudentSessions((prev) => ({
+          ...prev,
+          [activeExam._id]: { ...(resultData.data || {}), isSubmitted: true },
+        }));
         fetchExams();
+      } else {
+        const text = await res.json();
+        alert(text.error || "Submission failed. Please try again.");
       }
-    } catch (e) {}
+    } catch (e) {
+      alert("Submission error. Please check your internet connection.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
+  };
+
+  // Filter exams applicable to student
+  const studentProgs = Array.isArray(student?.programmes) ? student.programmes : [];
+  const liveExams = exams.filter((e) => {
+    if (e.examState === "inactive") return false;
+    if (studentProgs.length === 0) return true;
+    return (
+      e.programme === "All Programmes" ||
+      studentProgs.includes(e.programme) ||
+      e.programme === student.programme
+    );
+  });
+
+  const totalQuestions =
+    (activeExam?.paper?.mcqs?.length || 0) + (activeExam?.paper?.theory?.length || 0);
+  const answeredMcqsCount = Object.keys(answers.mcqs || {}).length;
+  const answeredTheoryCount = Object.keys(answers.theory || {}).filter(
+    (k) => answers.theory[Number(k)]?.trim().length > 0
+  ).length;
+  const totalAnswered = answeredMcqsCount + answeredTheoryCount;
+
   if (loading)
-    return <div className="p-8 text-stone-500">Loading exams...</div>;
+    return (
+      <div className="p-12 text-center text-stone-500 bg-white border rounded-xl shadow-sm flex items-center justify-center gap-2">
+        <Clock3 className="h-5 w-5 animate-spin text-[#a1283c]" />
+        <span>Loading live examination sessions...</span>
+      </div>
+    );
+
+  // If submission receipt is active
+  if (submissionReceipt) {
+    return (
+      <div className="bg-white border rounded-xl shadow-sm p-8 max-w-xl mx-auto space-y-6 text-center">
+        <div className="w-16 h-16 bg-lime-100 text-lime-700 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle2 className="h-8 w-8" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-stone-850">Examination Paper Submitted</h2>
+          <p className="text-xs text-stone-500">
+            Your responses for <span className="font-semibold text-stone-800">{submissionReceipt.examTitle}</span> have been securely recorded.
+          </p>
+        </div>
+        <div className="bg-stone-50 border rounded-lg p-4 text-xs space-y-2 text-left">
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-stone-500">Candidate:</span>
+            <span className="font-semibold text-stone-800">{student.name} ({student.enrollmentNumber})</span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-stone-500">Submission Timestamp:</span>
+            <span className="font-mono text-stone-700">{new Date(submissionReceipt.submittedAt).toLocaleTimeString()}</span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-stone-500">MCQ Responses:</span>
+            <span className="font-semibold text-stone-800">
+              {submissionReceipt.mcqsAnswered} of {submissionReceipt.totalMcqs} Answered
+            </span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-stone-500">Subjective Responses:</span>
+            <span className="font-semibold text-stone-800">
+              {submissionReceipt.theoryAnswered} of {submissionReceipt.totalTheory} Answered
+            </span>
+          </div>
+        </div>
+        <div className="pt-2">
+          <Button
+            onClick={() => {
+              setSubmissionReceipt(null);
+              setJoined(false);
+              setActiveExam(null);
+              fetchExams();
+            }}
+            className="w-full bg-[#a1283c] hover:bg-[#831e2f]"
+          >
+            Return to Examination Portal
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border rounded-xl shadow-sm p-6 space-y-6">
       {!joined ? (
         <>
-          <div className="border-b pb-3">
-            <h2 className="font-bold text-stone-850">Online Exams Workspace</h2>
-            <p className="text-xs text-stone-400">
-              Join ongoing and scheduled examinations live.
-            </p>
+          <div className="border-b pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-lime-500 animate-pulse" />
+                <h2 className="font-bold text-stone-850 text-base">Online Examinations Portal</h2>
+              </div>
+              <p className="text-xs text-stone-400 mt-0.5">
+                Join live testing rooms and sit for scheduled examinations in real time.
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              className="min-h-8 text-xs py-1"
+              onClick={fetchExams}
+            >
+              Refresh Sessions
+            </Button>
           </div>
+
           <div className="divide-y divide-stone-100">
-            {exams.filter((e) => e.examState !== "inactive").length === 0 ? (
-              <div className="p-8 text-center text-stone-500 text-sm">
-                No live exam conduction room active right now.
+            {liveExams.length === 0 ? (
+              <div className="p-12 text-center text-stone-500 text-sm space-y-2">
+                <Clock3 className="h-8 w-8 text-stone-300 mx-auto" />
+                <p className="font-medium text-stone-600">No live exam conduction room active right now.</p>
+                <p className="text-xs text-stone-400 max-w-sm mx-auto">
+                  When the examination controller opens a testing room for your enrolled programme, it will appear here automatically.
+                </p>
               </div>
             ) : (
-              exams
-                .filter((e) => e.examState !== "inactive")
-                .map((exam, idx) => (
+              liveExams.map((exam, idx) => {
+                const session = studentSessions[exam._id];
+                const isSubmitted = session?.isSubmitted;
+                const isLockedOut = session?.leftExam;
+                const mcqCount = exam.paper?.mcqs?.length || 0;
+                const theoryCount = exam.paper?.theory?.length || 0;
+
+                return (
                   <div
-                    key={idx}
-                    className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    key={exam._id || idx}
+                    className="py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                   >
-                    <div>
-                      <h3 className="font-bold text-sm text-[#a1283c]">
-                        {exam.title}
-                      </h3>
-                      <p className="text-xs text-stone-500 mt-1">
-                        Programme: {exam.programme} | State: {exam.examState}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-sm text-[#a1283c]">
+                          {exam.title} ({exam.examYear || "2026"})
+                        </h3>
+                        {exam.examState === "portal_open" && (
+                          <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                            Waiting Hall Open
+                          </span>
+                        )}
+                        {exam.examState === "running" && (
+                          <span className="bg-lime-100 text-lime-800 border border-lime-200 text-[10px] uppercase font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-lime-600 animate-pulse" />
+                            Live Exam Underway
+                          </span>
+                        )}
+                        {isSubmitted && (
+                          <span className="bg-blue-100 text-blue-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                            Paper Submitted
+                          </span>
+                        )}
+                        {isLockedOut && (
+                          <span className="bg-red-100 text-red-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                            Locked Out
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-stone-500">
+                        Programme: <span className="font-medium text-stone-700">{exam.programme}</span> | Duration:{" "}
+                        <span className="font-medium text-stone-700">{exam.duration || 120} Mins</span> | Paper:{" "}
+                        <span className="font-medium text-stone-700">{mcqCount} MCQs, {theoryCount} Subjective</span>
                       </p>
                     </div>
-                    <Button onClick={() => handleJoin(exam)}>
-                      Join Examination Room
-                    </Button>
+
+                    <div className="flex items-center gap-2">
+                      {isSubmitted ? (
+                        <div className="text-right">
+                          <span className="text-xs font-semibold text-lime-700 block">
+                            Submission Recorded
+                          </span>
+                          <span className="text-[10px] text-stone-400">
+                            Awaiting Evaluation
+                          </span>
+                        </div>
+                      ) : isLockedOut ? (
+                        <span className="text-xs text-red-600 font-semibold">
+                          Session Disqualified
+                        </span>
+                      ) : (
+                        <Button
+                          onClick={() => handleJoin(exam)}
+                          className={
+                            exam.examState === "running"
+                              ? "bg-[#a1283c] hover:bg-[#831e2f]"
+                              : "bg-lime-600 hover:bg-lime-700"
+                          }
+                        >
+                          {exam.examState === "running"
+                            ? "Enter Examination Room"
+                            : "Join Waiting Hall"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                ))
+                );
+              })
             )}
           </div>
         </>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-between bg-stone-900 text-white p-4 rounded-lg">
+          {/* Active Session Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-stone-900 text-white p-5 rounded-xl shadow-md border-t-4 border-[#a1283c]">
             <div>
-              <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">
-                Active Session
-              </span>
-              <h2 className="font-bold mt-1 text-sm">{activeExam.title}</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                  {activeExam.examState === "portal_open"
+                    ? "Candidate Waiting Hall"
+                    : "Live Examination Session"}
+                </span>
+                <span className="text-xs text-white/50">
+                  Candidate: {student.name} ({student.enrollmentNumber})
+                </span>
+              </div>
+              <h2 className="font-bold text-base">{activeExam.title}</h2>
             </div>
-            <div className="text-right">
+            <div className="text-right bg-stone-800/80 px-4 py-2 rounded-lg border border-white/10">
               <span className="text-[10px] uppercase text-white/50 block">
-                Time Remaining
+                {activeExam.examState === "portal_open"
+                  ? "Joining Window Ends In"
+                  : "Time Remaining"}
               </span>
-              <span className="font-mono font-bold text-lg text-[#e8c476]">
-                {Math.floor(timerRemaining / 60)}m {timerRemaining % 60}s
+              <span
+                className={`font-mono font-bold text-xl ${
+                  timerRemaining < 300 && activeExam.examState === "running"
+                    ? "text-red-400 animate-pulse"
+                    : "text-[#e8c476]"
+                }`}
+              >
+                {formatTimer(timerRemaining)}
               </span>
             </div>
           </div>
 
+          {/* State 1: In Waiting Hall */}
           {activeExam.examState === "portal_open" && (
-            <div className="p-12 text-center bg-stone-50 border rounded-lg space-y-4">
-              <Clock3 className="h-10 w-10 text-stone-400 mx-auto animate-pulse" />
-              <h3 className="font-bold text-stone-850">
-                Seated in Waiting Hall
+            <div className="p-12 text-center bg-stone-50 border rounded-xl space-y-4">
+              <div className="relative w-16 h-16 mx-auto">
+                <Clock3 className="h-16 w-16 text-[#a1283c] animate-pulse mx-auto" />
+              </div>
+              <h3 className="font-bold text-stone-850 text-base">
+                Seated in Examination Waiting Hall
               </h3>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                Please do not refresh or change tabs. The exam paper will
-                automatically appear once the controller starts the examination.
+              <p className="text-xs text-stone-500 max-w-md mx-auto leading-relaxed">
+                You are successfully admitted to this session. Please do not refresh, switch tabs, or close this window.
+                <span className="block mt-1 font-semibold text-[#a1283c]">
+                  Your question paper will appear on this screen automatically the instant the controller starts the examination.
+                </span>
               </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-lime-100 text-lime-800 rounded-full text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-lime-600 animate-ping" />
+                Live Sync Active: Waiting for Controller to Release Paper
+              </div>
             </div>
           )}
 
+          {/* State 2: Test Running & Questions Paper */}
           {activeExam.examState === "running" && (
             <div className="space-y-8 font-sans">
+              {/* Question Paper Progress Bar */}
+              <div className="bg-stone-50 border rounded-lg p-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-stone-700">Paper Progress:</span>
+                  <span className="bg-[#a1283c] text-white px-2 py-0.5 rounded font-bold">
+                    {totalAnswered} / {totalQuestions} Questions Answered
+                  </span>
+                </div>
+                <div className="text-stone-400 text-[11px]">
+                  Keep window focused. Tab switches are strictly monitored.
+                </div>
+              </div>
+
+              {/* Notice if 0 questions are configured */}
+              {(!activeExam.paper?.mcqs?.length && !activeExam.paper?.theory?.length) ? (
+                <div className="p-10 text-center bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-amber-800">
+                  <AlertCircle className="h-8 w-8 text-amber-600 mx-auto" />
+                  <h4 className="font-bold text-sm">No Questions Attached to Exam Paper</h4>
+                  <p className="text-xs text-amber-700 max-w-md mx-auto">
+                    The examination controller has not yet uploaded question items for this paper. Please wait or contact your examination authority.
+                  </p>
+                </div>
+              ) : null}
+
+              {/* MCQs Section */}
               {activeExam.paper?.mcqs?.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="font-bold text-sm border-b pb-2 text-stone-800 uppercase tracking-wider font-sans">
-                    Multiple Choice Questions
-                  </h3>
-                  {activeExam.paper.mcqs.map((q, idx) => (
-                    <div
-                      key={idx}
-                      className="border p-4 rounded-lg bg-stone-50 space-y-3 font-sans"
-                    >
-                      <div className="font-semibold text-sm text-stone-850 font-sans">
-                        {idx + 1}. {q.question}
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="font-bold text-sm text-stone-850 uppercase tracking-wider">
+                      Section A: Multiple Choice Questions ({activeExam.paper.mcqs.length})
+                    </h3>
+                    <span className="text-xs text-stone-500">
+                      Answered {answeredMcqsCount} of {activeExam.paper.mcqs.length}
+                    </span>
+                  </div>
+
+                  {activeExam.paper.mcqs.map((q: any, idx: number) => {
+                    const isAnswered = answers.mcqs[idx] !== undefined;
+                    return (
+                      <div
+                        key={idx}
+                        className={`border rounded-xl p-5 transition space-y-3 font-sans ${
+                          isAnswered ? "bg-stone-50 border-stone-300" : "bg-white border-stone-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4 font-sans">
+                          <div className="font-semibold text-sm text-stone-850 flex items-start gap-2">
+                            <span className="bg-[#a1283c] text-white text-[11px] font-bold px-2 py-0.5 rounded shrink-0">
+                              Q{idx + 1}
+                            </span>
+                            <span>{q.question}</span>
+                          </div>
+                          <span className="text-[11px] font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded shrink-0">
+                            {q.marks || 1} Marks
+                          </span>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-3 pt-1 font-sans">
+                          {q.options.map((opt: string, oIdx: number) => {
+                            const isSelected = answers.mcqs[idx] === oIdx;
+                            return (
+                              <label
+                                key={oIdx}
+                                className={`flex items-center gap-3 text-xs p-3.5 rounded-lg cursor-pointer border transition font-sans ${
+                                  isSelected
+                                    ? "bg-red-50/70 border-[#a1283c] text-[#a1283c] font-semibold shadow-sm"
+                                    : "bg-white border-stone-200 text-stone-700 hover:border-stone-400"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`q_${idx}`}
+                                  checked={isSelected}
+                                  onChange={() =>
+                                    setAnswers({
+                                      ...answers,
+                                      mcqs: { ...answers.mcqs, [idx]: oIdx },
+                                    })
+                                  }
+                                  className="accent-[#a1283c]"
+                                />
+                                <span>{opt}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="grid sm:grid-cols-2 gap-3 font-sans">
-                        {q.options.map((opt, oIdx) => (
-                          <label
-                            key={oIdx}
-                            className="flex items-center gap-2 text-xs bg-white border p-3 rounded-lg cursor-pointer hover:border-[#a1283c] transition font-sans"
-                          >
-                            <input
-                              type="radio"
-                              name={`q_${idx}`}
-                              checked={answers.mcqs[idx] === oIdx}
-                              onChange={() =>
-                                setAnswers({
-                                  ...answers,
-                                  mcqs: { ...answers.mcqs, [idx]: oIdx },
-                                })
-                              }
-                            />
-                            {opt}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
+              {/* Theory / Subjective Section */}
               {activeExam.paper?.theory?.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="font-bold text-sm border-b pb-2 text-stone-800 uppercase tracking-wider">
-                    Subjective Questions
-                  </h3>
-                  {activeExam.paper.theory.map((tq, idx) => (
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="font-bold text-sm text-stone-850 uppercase tracking-wider">
+                      Section B: Subjective / Theory Questions ({activeExam.paper.theory.length})
+                    </h3>
+                    <span className="text-xs text-stone-500">
+                      Answered {answeredTheoryCount} of {activeExam.paper.theory.length}
+                    </span>
+                  </div>
+
+                  {activeExam.paper.theory.map((tq: any, idx: number) => (
                     <div
                       key={idx}
-                      className="border p-4 rounded-lg bg-stone-50 space-y-3 font-sans"
+                      className="border border-stone-200 p-5 rounded-xl bg-white space-y-3 font-sans"
                     >
-                      <div className="font-semibold text-sm text-stone-850 font-sans">
-                        {idx + 1}. {tq.question} ({tq.marks} Marks)
+                      <div className="flex items-start justify-between gap-4 font-sans">
+                        <div className="font-semibold text-sm text-stone-850 flex items-start gap-2">
+                          <span className="bg-stone-800 text-white text-[11px] font-bold px-2 py-0.5 rounded shrink-0">
+                            Q{idx + 1}
+                          </span>
+                          <span>{tq.question}</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded shrink-0">
+                          {tq.marks || 5} Marks
+                        </span>
                       </div>
                       <textarea
-                        rows={6}
+                        rows={5}
                         placeholder="Write your answer statement here..."
-                        className="w-full bg-white border rounded-lg p-3 text-xs outline-none focus:border-[#a1283c] leading-5 font-sans"
+                        className="w-full bg-stone-50 border rounded-lg p-3 text-xs outline-none focus:border-[#a1283c] focus:bg-white leading-relaxed font-sans"
                         value={answers.theory[idx] || ""}
                         onChange={(e) =>
                           setAnswers({
@@ -10185,11 +10564,88 @@ function StudentOnlineExamView({
                 </div>
               )}
 
-              <div className="flex justify-end pt-4 border-t">
-                <Button onClick={handleSubmit}>Submit Examination Paper</Button>
+              {/* Submit Action Bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+                <div className="text-xs text-stone-500">
+                  Make sure you have reviewed all answers before final submission.
+                </div>
+                <Button
+                  onClick={() => setShowSubmitModal(true)}
+                  className="w-full sm:w-auto bg-[#a1283c] hover:bg-[#831e2f] min-h-10 px-6 font-bold"
+                >
+                  Submit Examination Paper
+                </Button>
               </div>
             </div>
           )}
+
+          {/* State 3: Exam Ended by Controller */}
+          {activeExam.examState === "ended" && (
+            <div className="p-10 text-center bg-stone-50 border rounded-xl space-y-4">
+              <CheckCircle2 className="h-10 w-10 text-stone-400 mx-auto" />
+              <h3 className="font-bold text-stone-850">Examination Concluded</h3>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                This examination session has been concluded by the controller.
+              </p>
+              <Button
+                onClick={() => {
+                  setJoined(false);
+                  setActiveExam(null);
+                  fetchExams();
+                }}
+              >
+                Back to Examinations List
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Submission Confirmation Modal */}
+      {showSubmitModal && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-stone-950/60 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <h3 className="font-bold text-base text-stone-850">
+              Confirm Final Paper Submission
+            </h3>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Are you sure you want to finalize your submission? Once submitted, you cannot re-enter or edit your responses.
+            </p>
+            <div className="bg-stone-50 border rounded-lg p-3 text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-stone-500">MCQs Answered:</span>
+                <span className="font-bold text-stone-800">
+                  {answeredMcqsCount} / {activeExam.paper?.mcqs?.length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-500">Subjective Answered:</span>
+                <span className="font-bold text-stone-800">
+                  {answeredTheoryCount} / {activeExam.paper?.theory?.length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between pt-1 border-t text-[#a1283c] font-bold">
+                <span>Total Answered:</span>
+                <span>{totalAnswered} of {totalQuestions}</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="secondary"
+                disabled={submitting}
+                onClick={() => setShowSubmitModal(false)}
+              >
+                Back to Paper
+              </Button>
+              <Button
+                disabled={submitting}
+                className="bg-[#a1283c] hover:bg-[#831e2f]"
+                onClick={() => handleSubmit(false)}
+              >
+                {submitting ? "Submitting Paper..." : "Yes, Submit Paper"}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -11152,7 +11608,7 @@ function AdminProgrammeDashboard({
   const [results, setResults] = useState<any[]>([]);
   const [docs, setDocs] = useState<any[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<
-    "Overview" | "Subjects" | "Columns" | "Materials" | "Students" | "Exams"
+    "Overview" | "Subjects" | "Columns" | "Materials" | "Students" | "Exams" | "Exam Conduction"
   >("Overview");
 
   // Presets and dynamic configuration
@@ -11594,6 +12050,7 @@ function AdminProgrammeDashboard({
     setConductionExam(exam);
     setConductionDuration(exam.duration || 120);
     setConductionWindow(exam.joiningWindow || 5);
+    setActiveSubTab("Exam Conduction");
     pollJoinedStudents(exam._id);
   };
 
@@ -11604,6 +12061,54 @@ function AdminProgrammeDashboard({
         setJoinedStudents(await res.json());
       }
     } catch (e) {}
+  };
+
+  // Real-time polling for joined candidates while Conduction Control Room is open
+  useEffect(() => {
+    if (!conductionExam?._id) return;
+    pollJoinedStudents(conductionExam._id);
+    const interval = setInterval(() => {
+      pollJoinedStudents(conductionExam._id);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [conductionExam?._id]);
+
+  const handleResetConduction = async () => {
+    if (!conductionExam) return;
+    if (
+      !confirm(
+        "Are you sure you want to reset this examination session? All candidate attempt records will be cleared, and state will return to Inactive."
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      await fetch(`/api/student-exams?examId=${conductionExam._id}`, {
+        method: "DELETE",
+      });
+      const res = await fetch("/api/exams", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: conductionExam._id,
+          examState: "inactive",
+          status: "Upcoming",
+          portalOpenTime: null,
+          startTime: null,
+        }),
+      });
+      if (res.ok) {
+        notify("Examination session reset successfully!");
+        const data = await res.json();
+        setConductionExam(data.exam);
+        setJoinedStudents([]);
+        fetchData();
+      }
+    } catch (e) {
+      alert("Failed to reset session");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleStartConduction = async (state: string) => {
@@ -11828,7 +12333,7 @@ function AdminProgrammeDashboard({
           </div>
         </div>
 
-        <div className="flex gap-1 bg-stone-100 p-1 rounded-lg border">
+        <div className="flex gap-1 bg-stone-100 p-1 rounded-lg border overflow-x-auto">
           {[
             "Overview",
             "Subjects",
@@ -11836,45 +12341,275 @@ function AdminProgrammeDashboard({
             "Materials",
             "Students",
             "Exams",
+            "Exam Conduction",
           ].map((tab: any) => (
             <button
               key={tab}
               onClick={() => {
                 setActiveSubTab(tab);
-                setConductionExam(null);
+                if (tab !== "Exam Conduction") {
+                  setConductionExam(null);
+                }
                 setGradingExam(null);
                 setActiveGradingExam(null);
               }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${activeSubTab === tab ? "bg-white text-[#a1283c] shadow-sm" : "text-stone-600 hover:text-[#a1283c]"}`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition whitespace-nowrap ${activeSubTab === tab ? "bg-white text-[#a1283c] shadow-sm" : "text-stone-600 hover:text-[#a1283c]"}`}
             >
-              {tab}
+              {tab === "Exam Conduction" ? "Exam Conduction" : tab}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Exam Conduction Tab View */}
+      {activeSubTab === "Exam Conduction" && !conductionExam && (
+        <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 mb-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-lime-500 animate-pulse" />
+                <h2 className="font-bold text-stone-850 text-base">
+                  Live Examination Conduction Center
+                </h2>
+              </div>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Manage candidate admission, release test question papers, monitor real-time test-takers, and proctor live exams.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                className="min-h-8 text-xs py-1"
+                onClick={fetchData}
+              >
+                Refresh Exams
+              </Button>
+              <Button
+                className="min-h-8 text-xs py-1"
+                onClick={() => setShowExamModal(true)}
+              >
+                + Schedule New Exam
+              </Button>
+            </div>
+          </div>
+
+          {exams.length === 0 ? (
+            <div className="p-12 text-center text-stone-500 text-xs space-y-3">
+              <CalendarDays className="h-8 w-8 text-stone-300 mx-auto" />
+              <p className="font-semibold text-stone-700">No examinations scheduled for {programme.title} yet.</p>
+              <p className="text-stone-400 max-w-sm mx-auto">
+                Create an examination in this programme first, add questions using the Paper Builder, and then open the conduction room.
+              </p>
+              <Button
+                onClick={() => setShowExamModal(true)}
+                className="min-h-8 text-xs"
+              >
+                Create Examination
+              </Button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {exams.map((exam: any) => {
+                const mcqCount = exam.paper?.mcqs?.length || 0;
+                const theoryCount = exam.paper?.theory?.length || 0;
+                const hasQuestions = mcqCount > 0 || theoryCount > 0;
+                const state = exam.examState || "inactive";
+
+                return (
+                  <div
+                    key={exam._id}
+                    className="border border-stone-200 rounded-xl p-5 hover:border-stone-300 transition space-y-4 bg-stone-50/50"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-sm text-stone-900">
+                            {exam.title}
+                          </h3>
+                          <span className="text-[10px] font-semibold text-stone-500 bg-stone-200/70 px-2 py-0.5 rounded">
+                            {exam.examYear || "2026"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 mt-1">
+                          Duration: <span className="font-medium text-stone-700">{exam.duration || 120} Mins</span> | Window: <span className="font-medium text-stone-700">{exam.joiningWindow || 5} Mins</span>
+                        </p>
+                      </div>
+
+                      <span
+                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
+                          state === "running"
+                            ? "bg-lime-100 text-lime-800 border-lime-200"
+                            : state === "portal_open"
+                            ? "bg-amber-100 text-amber-800 border-amber-200"
+                            : state === "ended"
+                            ? "bg-stone-200 text-stone-700 border-stone-300"
+                            : "bg-stone-100 text-stone-500 border-stone-200"
+                        }`}
+                      >
+                        {state === "running"
+                          ? "● Live Running"
+                          : state === "portal_open"
+                          ? "Waiting Hall Open"
+                          : state === "ended"
+                          ? "Concluded"
+                          : "Standby"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      {hasQuestions ? (
+                        <span className="inline-flex items-center gap-1.5 text-stone-600 bg-white border border-stone-200 px-2.5 py-1 rounded-md text-[11px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-lime-600" />
+                          <span>{mcqCount} MCQs</span> | <span>{theoryCount} Theory</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md text-[11px] font-medium">
+                          <AlertCircle className="h-3 w-3" />
+                          0 Questions Configured
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200/60 text-xs">
+                      <button
+                        onClick={() => handleOpenPaperBuilder(exam)}
+                        className="text-[#a1283c] hover:underline font-semibold text-xs"
+                      >
+                        {hasQuestions ? "Edit Paper Questions" : "+ Add Paper Questions"}
+                      </button>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          className="min-h-8 text-xs py-1"
+                          onClick={() => handleOpenGrading(exam)}
+                        >
+                          Grading
+                        </Button>
+                        <Button
+                          className={`min-h-8 text-xs py-1 ${
+                            state === "running"
+                              ? "bg-lime-600 hover:bg-lime-700"
+                              : state === "portal_open"
+                              ? "bg-amber-600 hover:bg-amber-700"
+                              : "bg-[#a1283c] hover:bg-[#831e2f]"
+                          }`}
+                          onClick={() => handleOpenConduction(exam)}
+                        >
+                          Launch Control Room
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Exam Conduction Control Room */}
       {conductionExam && (
         <div className="bg-stone-900 text-white rounded-xl shadow-xl p-6 mb-8 border-t-4 border-[#a1283c] space-y-6">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
-              <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded">
-                Exam Conduction Control Room
-              </span>
-              <h2 className="text-lg font-bold mt-1">{conductionExam.title}</h2>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#a1283c] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded">
+                  Exam Conduction Control Room
+                </span>
+                <span
+                  className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                    conductionExam.examState === "running"
+                      ? "bg-lime-500/20 text-lime-400 border border-lime-500/30"
+                      : conductionExam.examState === "portal_open"
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      : conductionExam.examState === "ended"
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : "bg-stone-800 text-stone-400 border border-white/10"
+                  }`}
+                >
+                  State: {conductionExam.examState || "inactive"}
+                </span>
+              </div>
+              <h2 className="text-lg font-bold mt-1 text-white">{conductionExam.title}</h2>
             </div>
-            <Button
-              variant="secondary"
-              className="border-white/20 text-white hover:bg-white/10 min-h-8 text-xs py-1"
-              onClick={() => setConductionExam(null)}
-            >
-              Close Control Room
-            </Button>
+
+            <div className="flex items-center gap-2">
+              {/* Test Switcher */}
+              {exams.length > 1 && (
+                <select
+                  className="bg-stone-800 border border-white/20 text-xs rounded px-2.5 py-1 text-white outline-none cursor-pointer"
+                  value={conductionExam._id}
+                  onChange={(e) => {
+                    const chosen = exams.find((x) => x._id === e.target.value);
+                    if (chosen) handleOpenConduction(chosen);
+                  }}
+                >
+                  {exams.map((ex) => (
+                    <option key={ex._id} value={ex._id}>
+                      {ex.title} ({ex.examState || "inactive"})
+                    </option>
+                  ))}
+                </select>
+              )}
+              <Button
+                variant="secondary"
+                className="border-white/20 text-white hover:bg-white/10 min-h-8 text-xs py-1"
+                onClick={() => setConductionExam(null)}
+              >
+                Close Control Room
+              </Button>
+            </div>
+          </div>
+
+          {/* Zero questions alert */}
+          {(!conductionExam.paper?.mcqs?.length && !conductionExam.paper?.theory?.length) && (
+            <div className="bg-amber-950/40 border border-amber-500/40 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-200">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
+                <div>
+                  <span className="font-bold text-amber-300 block">Notice: Paper has 0 Questions Attached!</span>
+                  <span>Candidates who join will see an empty question paper. Add questions before releasing paper.</span>
+                </div>
+              </div>
+              <Button
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs min-h-8 shrink-0"
+                onClick={() => handleOpenPaperBuilder(conductionExam)}
+              >
+                + Add Paper Questions
+              </Button>
+            </div>
+          )}
+
+          {/* Paper summary strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-stone-850 p-3 rounded-lg border border-white/5 text-xs">
+            <div>
+              <span className="text-[10px] uppercase text-white/50 block">MCQ Questions</span>
+              <span className="font-bold text-white text-sm">
+                {conductionExam.paper?.mcqs?.length || 0} Questions
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase text-white/50 block">Theory Questions</span>
+              <span className="font-bold text-white text-sm">
+                {conductionExam.paper?.theory?.length || 0} Questions
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase text-white/50 block">Enrolled Candidates</span>
+              <span className="font-bold text-white text-sm">{students.length} Students</span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase text-white/50 block">Joined Live</span>
+              <span className="font-bold text-[#e8c476] text-sm">{joinedStudents.length} Candidates</span>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
+            {/* Conduction Controls Column */}
             <div className="space-y-4">
               <h3 className="font-bold text-sm text-[#e8c476]">
-                Conduction Options
+                Conduction Controls
               </h3>
               <div>
                 <label className="text-[10px] uppercase text-white/50 block mb-1">
@@ -11883,7 +12618,7 @@ function AdminProgrammeDashboard({
                 <input
                   disabled={conductionExam.examState !== "inactive"}
                   type="number"
-                  className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none"
+                  className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none focus:border-[#a1283c]"
                   value={conductionDuration}
                   onChange={(e) =>
                     setConductionDuration(Number(e.target.value))
@@ -11897,49 +12632,76 @@ function AdminProgrammeDashboard({
                 <input
                   disabled={conductionExam.examState !== "inactive"}
                   type="number"
-                  className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none"
+                  className="w-full bg-stone-850 border border-white/10 text-xs rounded p-2 text-white outline-none focus:border-[#a1283c]"
                   value={conductionWindow}
                   onChange={(e) => setConductionWindow(Number(e.target.value))}
                 />
               </div>
-              <div className="pt-2">
+
+              <div className="pt-2 space-y-2">
                 {conductionExam.examState === "inactive" && (
                   <Button
-                    className="w-full bg-lime-600 hover:bg-lime-700"
+                    className="w-full bg-lime-600 hover:bg-lime-700 min-h-10 font-bold"
                     onClick={() => handleStartConduction("portal_open")}
                   >
-                    Open Exam Portal
+                    Open Candidate Waiting Hall
                   </Button>
                 )}
                 {conductionExam.examState === "portal_open" && (
                   <Button
-                    className="w-full bg-[#a1283c] hover:bg-[#831e2f]"
+                    className="w-full bg-[#a1283c] hover:bg-[#831e2f] min-h-10 font-bold"
                     onClick={() => handleStartConduction("running")}
                   >
-                    Release Exam Paper (Release to Joined)
+                    🚀 Release Exam Paper (Start Test)
                   </Button>
                 )}
                 {conductionExam.examState === "running" && (
                   <Button
-                    className="w-full bg-red-650 hover:bg-red-750"
+                    className="w-full bg-red-650 hover:bg-red-750 min-h-10 font-bold"
                     onClick={() => handleStartConduction("ended")}
                   >
-                    End Examination Conduction
+                    🛑 End Examination Conduction
                   </Button>
                 )}
                 {conductionExam.examState === "ended" && (
-                  <div className="text-center font-bold text-red-400 text-xs py-2 bg-red-950/20 border border-red-900/30 rounded">
-                    Conduction Cycle Finished
+                  <div className="space-y-2">
+                    <div className="text-center font-bold text-red-400 text-xs py-2 bg-red-950/20 border border-red-900/30 rounded">
+                      Conduction Cycle Finished
+                    </div>
+                    <Button
+                      variant="secondary"
+                      className="w-full border-white/20 text-white hover:bg-white/10 min-h-8 text-xs py-1"
+                      onClick={() => handleOpenGrading(conductionExam)}
+                    >
+                      Open Grading Dashboard
+                    </Button>
                   </div>
                 )}
+
+                {/* Reset Session Option */}
+                <div className="pt-2 border-t border-white/10">
+                  <button
+                    onClick={handleResetConduction}
+                    className="w-full text-center text-stone-400 hover:text-stone-200 text-[11px] py-1.5 transition underline"
+                  >
+                    🔄 Reset / Restart This Examination Session
+                  </button>
+                </div>
               </div>
             </div>
 
+            {/* Candidate Hall Column */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm text-[#e8c476]">
-                  Active Candidate Hall ({joinedStudents.length})
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-[#e8c476]">
+                    Live Candidate Hall ({joinedStudents.length})
+                  </h3>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-lime-400 bg-lime-950/40 border border-lime-800/40 px-2 py-0.5 rounded">
+                    <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+                    Live Sync Active
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   className="text-[#e8c476] min-h-8 text-xs py-1"
@@ -11948,33 +12710,61 @@ function AdminProgrammeDashboard({
                   Refresh Live List
                 </Button>
               </div>
-              <div className="bg-stone-800 border border-white/10 rounded-lg max-h-60 overflow-y-auto divide-y divide-white/5">
+
+              <div className="bg-stone-800 border border-white/10 rounded-lg max-h-72 overflow-y-auto divide-y divide-white/5">
                 {joinedStudents.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-white/40">
-                    Waiting for candidates to join room...
+                  <div className="p-8 text-center text-xs text-white/40 space-y-2">
+                    <Clock3 className="h-6 w-6 text-white/20 mx-auto" />
+                    <p>Waiting for candidates to join room...</p>
+                    <p className="text-[10px] text-white/30">
+                      When enrolled students click "Join Examination Room" in their student portal, they will appear here automatically.
+                    </p>
                   </div>
                 ) : (
-                  joinedStudents.map((se, sIdx) => {
-                    const sInfo = students.find(
-                      (s) => s.enrollmentNumber === se.studentEnrollment,
-                    );
+                  joinedStudents.map((se: any, sIdx: number) => {
+                    const studentDisplayName =
+                      se.studentName ||
+                      students.find((s: any) => s.enrollmentNumber === se.studentEnrollment)?.name ||
+                      "Student " + se.studentEnrollment;
+
+                    const mcqsAnswered = Object.keys(se.answers?.mcqs || {}).length;
+                    const theoryAnswered = Object.keys(se.answers?.theory || {}).filter(
+                      (k: string) => se.answers?.theory[k]?.trim()?.length > 0
+                    ).length;
+
                     return (
                       <div
                         key={sIdx}
-                        className="p-3 flex items-center justify-between text-xs hover:bg-stone-750"
+                        className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-stone-750 transition"
                       >
-                        <div>
-                          <div className="font-bold text-white">
-                            {sInfo?.name || "Student " + se.studentEnrollment}
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-white flex items-center gap-2">
+                            <span>{studentDisplayName}</span>
+                            {se.studentEmail && (
+                              <span className="text-[10px] text-white/40 font-normal">
+                                ({se.studentEmail})
+                              </span>
+                            )}
                           </div>
                           <div className="text-[10px] text-white/50">
-                            Enrollment: {se.studentEnrollment}
+                            Enrollment: <span className="font-mono text-white/70">{se.studentEnrollment}</span>
+                            {se.joinedAt && (
+                              <span> | Joined: {new Date(se.joinedAt).toLocaleTimeString()}</span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex gap-2 items-center">
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Live answers counter */}
+                          {conductionExam.examState === "running" && !se.isSubmitted && (
+                            <span className="text-[10px] text-stone-300 bg-stone-700/80 px-2 py-0.5 rounded font-mono">
+                              Answered: {mcqsAnswered} MCQ, {theoryAnswered} Theory
+                            </span>
+                          )}
+
                           {se.leftExam && (
                             <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded text-[9px] uppercase font-bold">
-                              LOCKED OUT (Window Focus Lost)
+                              LOCKED OUT (Focus Lost)
                             </span>
                           )}
                           {se.isSubmitted ? (
